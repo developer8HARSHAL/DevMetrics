@@ -1,0 +1,33 @@
+{
+  "name": "devmetrics-sdk",
+  "version": "1.0.0",
+  "description": "SDK to track and monitor API requests for DevMetrics dashboard",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "test": "node example/testApp.js",
+    "dev": "node example/testApp.js"
+  },
+  "keywords": [
+    "monitoring",
+    "api",
+    "metrics",
+    "tracking",
+    "analytics",
+    "devmetrics"
+  ],
+  "author": "Your Name",
+  "license": "MIT",
+  "dependencies": {},
+  "peerDependencies": {
+    "axios": ">=0.21.0"
+  },
+  "peerDependenciesMeta": {
+    "axios": {
+      "optional": true
+    }
+  },
+  "engines": {
+    "node": ">=14.0.0"
+  }
+}
