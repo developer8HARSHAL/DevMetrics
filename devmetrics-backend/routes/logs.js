@@ -1,12 +1,17 @@
 import express from "express";
-import { getLogs, getLogsSummary } from "../controllers/logsController.js";
+import {
+  getOverview,
+  getEndpointMetrics,
+  getRecentRequests,
+  getErrors
+} from "../controllers/logsController.js";
 
 const router = express.Router();
 
-// GET /logs → get all logs
-router.get("/", getLogs);
-
-// GET /logs/summary → aggregated stats
-router.get("/summary", getLogsSummary);
+// Analytics endpoints for dashboard
+router.get("/metrics/overview", getOverview);
+router.get("/metrics/endpoint", getEndpointMetrics);
+router.get("/metrics/recent", getRecentRequests);
+router.get("/metrics/errors", getErrors);
 
 export default router;

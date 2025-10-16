@@ -8,17 +8,23 @@
         |-- apiRegistry.js
         |-- db.js
     |-- controllers
+        |-- apiKeyController.js
         |-- logsController.js
         |-- trackController.js
     |-- middleware
         |-- auth.js
     |-- models
+        |-- ApiKey.js
         |-- Request.js
+    |-- package-lock.json
     |-- package.json
     |-- README.md
     |-- routes
+        |-- apiKey.js
         |-- logs.js
         |-- track.js
+    |-- scripts
+        |-- seedApiKey.js
     |-- utils
         |-- alert.js
 |-- devmetrics-dashboard
@@ -56,4 +62,3 @@
         |-- wrapAxios.js
         |-- wrapFetch.js
 |-- git
-|-- verify.txt
