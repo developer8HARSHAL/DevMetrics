@@ -28,6 +28,7 @@
     |-- utils
         |-- alert.js
 |-- devmetrics-dashboard
+    |-- .env.local
     |-- .gitignore
     |-- jsconfig.json
     |-- next.config.mjs
@@ -43,10 +44,27 @@
     |-- README.md
     |-- src
         |-- app
+            |-- components
+                |-- ChartCard.jsx
+                |-- Loader.jsx
+                |-- LogsTable.jsx
+                |-- MetricCard.jsx
+                |-- Navbar.jsx
+                |-- Sidebar.jsx
+            |-- errors
+                |-- page.js
             |-- favicon.ico
             |-- globals.css
+            |-- hooks
+                |-- useFetch.js
             |-- layout.js
+            |-- lib
+                |-- api.js
+            |-- metrics
+                |-- page.js
             |-- page.js
+            |-- utils
+                |-- formatters.js
 |-- devmetrics-sdk
     |-- .gitignore
     |-- example
