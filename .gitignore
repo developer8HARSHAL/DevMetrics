@@ -60,3 +60,4 @@ devmetrics-dashboard/out/
 devmetrics-backend/uploads/
 devmetrics-backend/.env
 devmetrics-backend/mongo-data/
+.vercel

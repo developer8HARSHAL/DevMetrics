@@ -30,6 +30,9 @@
 |-- devmetrics-dashboard
     |-- .env.local
     |-- .gitignore
+    |-- .vercel
+        |-- project.json
+        |-- README.txt
     |-- jsconfig.json
     |-- next.config.mjs
     |-- package-lock.json
