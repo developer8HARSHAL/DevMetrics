@@ -1,0 +1,7 @@
+{
+  "buildCommand": "cd devmetrics-dashboard && npm run build",
+  "outputDirectory": "devmetrics-dashboard/.next",
+  "installCommand": "cd devmetrics-dashboard && npm install",
+  "framework": "nextjs",
+  "rootDirectory": "devmetrics-dashboard"
+}
