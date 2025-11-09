@@ -1,5 +1,11 @@
 |-- .gitattributes
 |-- .gitignore
+|-- .txt
+|-- .vercel
+    |-- project.json
+    |-- README.txt
+|-- content.txt
+|-- d1.png
 |-- devmetrics-backend
     |-- .env
     |-- .gitignore
@@ -28,6 +34,7 @@
     |-- utils
         |-- alert.js
 |-- devmetrics-dashboard
+    |-- .env
     |-- .env.local
     |-- .gitignore
     |-- .vercel
@@ -83,4 +90,5 @@
         |-- wrapAxios.js
         |-- wrapFetch.js
 |-- git
+|-- README.md
 |-- vercel.json

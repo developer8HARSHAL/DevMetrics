@@ -5,7 +5,7 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContaine
 import Navbar from '../components/Navbar';
 import ChartCard from '../components/ChartCard';
 import Loader from '../components/Loader';
-import { fetchEndpointMetrics } from '../lib/api';
+import { fetchEndpointMetrics, getApiKey, getDemoEndpoints } from '../lib/api';
 import { formatNumber, formatResponseTime, formatPercentage } from '../utils/formatters';
 
 const COLORS = ['#60a5fa', '#4ade80', '#fbbf24', '#a78bfa', '#f87171', '#06b6d4', '#ec4899', '#14b8a6'];
@@ -14,16 +14,42 @@ export default function MetricsPage() {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [isDemo, setIsDemo] = useState(false);
 
   const loadData = async () => {
     try {
       setLoading(true);
       setError(null);
+      
+      const apiKey = getApiKey();
+      
+      // If no API key, show demo data
+      if (!apiKey) {
+        setData(getDemoEndpoints());
+        setIsDemo(true);
+        setLoading(false);
+        return;
+      }
+
+      // Try to fetch real data
       const response = await fetchEndpointMetrics();
-      setData(response.data.data);
+      const fetchedData = response.data.data;
+      
+      // If no real data, show demo
+      if (!fetchedData || fetchedData.length === 0) {
+        setData(getDemoEndpoints());
+        setIsDemo(true);
+      } else {
+        setData(fetchedData);
+        setIsDemo(false);
+      }
     } catch (err) {
-      setError(err.message || 'Failed to load metrics');
       console.error('Metrics error:', err);
+      
+      // On error, show demo data
+      setData(getDemoEndpoints());
+      setIsDemo(true);
+      setError('Using demo data - connect your API key to see live metrics');
     } finally {
       setLoading(false);
     }
@@ -44,25 +70,17 @@ export default function MetricsPage() {
     );
   }
 
-  if (error) {
-    return (
-      <div>
-        <Navbar onRefresh={loadData} loading={loading} title="Detailed Metrics" />
-        <div className="p-8">
-          <div className="bg-red-50 border border-red-100 rounded-2xl p-8 text-center">
-            <p className="text-red-700 text-sm">{error}</p>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
   const sortedByRequests = [...(data || [])].sort((a, b) => b.totalRequests - a.totalRequests).slice(0, 10);
   const sortedByResponseTime = [...(data || [])].sort((a, b) => b.avgResponseTime - a.avgResponseTime).slice(0, 10);
 
   return (
     <div>
-      <Navbar onRefresh={loadData} loading={loading} title="Detailed Metrics" subtitle="Endpoint-level performance analysis" />
+      <Navbar 
+        onRefresh={loadData} 
+        loading={loading} 
+        title="Detailed Metrics" 
+        subtitle={isDemo ? "Demo Data - Add API key for live metrics" : "Endpoint-level performance analysis"}
+      />
       
       <div className="p-8 space-y-6">
         {/* Top Endpoints */}

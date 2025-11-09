@@ -1,0 +1,33 @@
+🚀 Just launched DevMetrics!
+
+✅ Track APIs in 3 lines of code
+✅ Real-time dashboard
+✅ Self-hosted & open source
+
+Perfect for monitoring your app's performance.
+
+Try it: [link]
+
+#DevTools #Monitoring
+```
+
+### **LinkedIn Post Template**:
+```
+I'm excited to share DevMetrics - an API monitoring platform I built!
+
+THE PROBLEM:
+Developers need to know which APIs are slow, but enterprise monitoring tools are complex and expensive.
+
+THE SOLUTION:
+DevMetrics provides production-ready monitoring with:
+- 3-line integration
+- Real-time analytics
+- Beautiful dashboards
+- Self-hosted option
+
+Try it out: [link]
+```
+
+### **Blog Intro Template**:
+```
+As developers, we've all been there - users complaining about slow load times, but we have no idea which API is the culprit. Enterprise monitoring tools like DataDog cost thousands and take weeks to set up. That's why I built DevMetrics...
