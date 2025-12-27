@@ -1,7 +1,6 @@
 import Request from "../models/Request.js";
 import ApiKey from "../models/ApiKey.js";
 
-// Validation helper
 const validateTrackData = (data) => {
   const errors = [];
   
@@ -36,12 +35,10 @@ const validateTrackData = (data) => {
   return errors;
 };
 
-// Main tracking handler
 export const handleTrack = async (req, res) => {
   try {
     const { apiKey, endpoint, method, status, responseTime, timestamp } = req.body;
 
-    // Validate incoming data
     const validationErrors = validateTrackData(req.body);
     if (validationErrors.length > 0) {
       return res.status(400).json({ 
@@ -51,7 +48,6 @@ export const handleTrack = async (req, res) => {
       });
     }
 
-    // Validate API key exists and is active
     const apiKeyDoc = await ApiKey.findOne({ key: apiKey });
     
     if (!apiKeyDoc) {
@@ -61,30 +57,28 @@ export const handleTrack = async (req, res) => {
       });
     }
 
-    if (!apiKeyDoc.isValid()) {
+    if (!ApiKey.isValid(apiKeyDoc)) {
       return res.status(401).json({ 
         success: false,
         message: "API key is inactive or expired" 
       });
     }
 
-    // Check rate limits (optional, basic implementation)
     const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000);
     const recentRequests = await Request.countDocuments({
       apiKey: apiKey,
       timestamp: { $gte: oneHourAgo }
     });
 
-    if (recentRequests >= apiKeyDoc.rateLimit.requestsPerHour) {
+    if (recentRequests >= apiKeyDoc.requests_per_hour) {
       return res.status(429).json({
         success: false,
         message: "Rate limit exceeded",
-        limit: apiKeyDoc.rateLimit.requestsPerHour,
+        limit: apiKeyDoc.requests_per_hour,
         resetAt: new Date(Date.now() + 60 * 60 * 1000).toISOString()
       });
     }
 
-    // Create and save the request log
     const newRequest = new Request({
       apiKey,
       endpoint,
@@ -96,15 +90,14 @@ export const handleTrack = async (req, res) => {
 
     await newRequest.save();
 
-    // Increment API key usage (fire and forget)
-    apiKeyDoc.incrementUsage().catch(err => 
+    ApiKey.incrementUsage(apiKey).catch(err => 
       console.error('Failed to increment usage:', err)
     );
 
     res.status(201).json({ 
       success: true,
       message: "Request tracked successfully",
-      id: newRequest._id
+      id: newRequest.id
     });
 
   } catch (err) {

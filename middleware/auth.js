@@ -1,6 +1,5 @@
 import ApiKey from "../models/ApiKey.js";
 
-// Validate API key from request body (for tracking endpoint)
 export const validateApiKey = async (req, res, next) => {
   try {
     const apiKey = req.body.apiKey || req.headers["x-api-key"];
@@ -21,14 +20,13 @@ export const validateApiKey = async (req, res, next) => {
       });
     }
 
-    if (!apiKeyDoc.isValid()) {
+    if (!ApiKey.isValid(apiKeyDoc)) {
       return res.status(401).json({ 
         success: false,
         message: "API key is inactive or expired" 
       });
     }
 
-    // Attach API key document to request for later use
     req.apiKeyDoc = apiKeyDoc;
     next();
   } catch (err) {
@@ -40,7 +38,6 @@ export const validateApiKey = async (req, res, next) => {
   }
 };
 
-// Validate admin key for API key management endpoints
 export const validateAdminKey = (req, res, next) => {
   const adminKey = req.headers["x-admin-key"];
   
@@ -61,7 +58,6 @@ export const validateAdminKey = (req, res, next) => {
   next();
 };
 
-// Optional middleware to validate dashboard access
 export const validateDashboardAccess = (req, res, next) => {
   const dashboardKey = req.headers["x-dashboard-key"];
   
