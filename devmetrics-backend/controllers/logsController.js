@@ -1,24 +1,20 @@
 import Request from "../models/Request.js";
+import { query } from "../config/db.js";
 
-// GET /metrics/overview - High-level stats
 export const getOverview = async (req, res) => {
   try {
     const { startDate, endDate, apiKey } = req.query;
 
-    // Build date filter
-    const dateFilter = {};
-    if (startDate) dateFilter.$gte = new Date(startDate);
-    if (endDate) dateFilter.$lte = new Date(endDate);
-
     const matchFilter = {};
-    if (Object.keys(dateFilter).length > 0) {
-      matchFilter.timestamp = dateFilter;
+    if (startDate || endDate) {
+      matchFilter.timestamp = {};
+      if (startDate) matchFilter.timestamp.$gte = new Date(startDate);
+      if (endDate) matchFilter.timestamp.$lte = new Date(endDate);
     }
     if (apiKey) {
       matchFilter.apiKey = apiKey;
     }
 
-    // Aggregate statistics
     const stats = await Request.aggregate([
       { $match: matchFilter },
       {
@@ -85,7 +81,7 @@ export const getOverview = async (req, res) => {
               }
             },
             { $sort: { _id: 1 } },
-            { $limit: 168 } // Last 7 days of hourly data
+            { $limit: 168 }
           ]
         }
       }
@@ -93,6 +89,8 @@ export const getOverview = async (req, res) => {
 
     const result = stats[0];
 
+    const avgTime = result.avgResponseTime[0];
+    
     res.json({
       success: true,
       data: {
@@ -100,9 +98,9 @@ export const getOverview = async (req, res) => {
         successRate: result.successRate[0] 
           ? ((result.successRate[0].successful / result.successRate[0].total) * 100).toFixed(2)
           : 0,
-        avgResponseTime: result.avgResponseTime[0]?.avg?.toFixed(2) || 0,
-        minResponseTime: result.avgResponseTime[0]?.min || 0,
-        maxResponseTime: result.avgResponseTime[0]?.max || 0,
+        avgResponseTime: avgTime?.avg ? parseFloat(avgTime.avg).toFixed(2) : 0,
+        minResponseTime: avgTime?.min ? parseInt(avgTime.min) : 0,
+        maxResponseTime: avgTime?.max ? parseInt(avgTime.max) : 0,
         requestsByStatus: result.requestsByStatus,
         requestsByMethod: result.requestsByMethod,
         requestsOverTime: result.requestsOverTime
@@ -119,7 +117,6 @@ export const getOverview = async (req, res) => {
   }
 };
 
-// GET /metrics/endpoint - Stats per endpoint
 export const getEndpointMetrics = async (req, res) => {
   try {
     const { startDate, endDate, apiKey, endpoint } = req.query;
@@ -150,35 +147,21 @@ export const getEndpointMetrics = async (req, res) => {
           },
           methods: { $addToSet: "$method" }
         }
-      },
-      {
-        $project: {
-          endpoint: "$_id",
-          totalRequests: 1,
-          avgResponseTime: { $round: ["$avgResponseTime", 2] },
-          minResponseTime: 1,
-          maxResponseTime: 1,
-          successRate: {
-            $multiply: [
-              { $divide: ["$successCount", "$totalRequests"] },
-              100
-            ]
-          },
-          errorRate: {
-            $multiply: [
-              { $divide: ["$errorCount", "$totalRequests"] },
-              100
-            ]
-          },
-          methods: 1
-        }
-      },
-      { $sort: { totalRequests: -1 } }
+      }
     ]);
 
     res.json({
       success: true,
-      data: endpointStats
+      data: endpointStats.map(stat => ({
+        endpoint: stat._id,
+        totalRequests: stat.totalRequests,
+        avgResponseTime: parseFloat(stat.avgResponseTime).toFixed(2),
+        minResponseTime: stat.minResponseTime,
+        maxResponseTime: stat.maxResponseTime,
+        successRate: ((stat.successCount / stat.totalRequests) * 100).toFixed(2),
+        errorRate: ((stat.errorCount / stat.totalRequests) * 100).toFixed(2),
+        methods: stat.methods
+      }))
     });
 
   } catch (err) {
@@ -191,7 +174,6 @@ export const getEndpointMetrics = async (req, res) => {
   }
 };
 
-// GET /metrics/recent - Latest requests
 export const getRecentRequests = async (req, res) => {
   try {
     const { limit = 100, page = 1, apiKey, status, endpoint } = req.query;
@@ -201,17 +183,41 @@ export const getRecentRequests = async (req, res) => {
     if (status) filter.status = parseInt(status);
     if (endpoint) filter.endpoint = endpoint;
 
-    const skip = (parseInt(page) - 1) * parseInt(limit);
+    const offset = (parseInt(page) - 1) * parseInt(limit);
 
-    const [requests, total] = await Promise.all([
-      Request.find(filter)
-        .sort({ timestamp: -1 })
-        .limit(parseInt(limit))
-        .skip(skip)
-        .select('-__v')
-        .lean(),
-      Request.countDocuments(filter)
+    // Build SQL query
+    const conditions = [];
+    const values = [];
+    let paramCount = 1;
+
+    if (apiKey) {
+      conditions.push(`api_key = $${paramCount++}`);
+      values.push(apiKey);
+    }
+    if (status) {
+      conditions.push(`status = $${paramCount++}`);
+      values.push(parseInt(status));
+    }
+    if (endpoint) {
+      conditions.push(`endpoint = $${paramCount++}`);
+      values.push(endpoint);
+    }
+
+    const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : '';
+
+    const [requestsResult, totalResult] = await Promise.all([
+      query(
+        `SELECT * FROM requests ${whereClause} ORDER BY timestamp DESC LIMIT $${paramCount} OFFSET $${paramCount + 1}`,
+        [...values, parseInt(limit), offset]
+      ),
+      query(
+        `SELECT COUNT(*) as count FROM requests ${whereClause}`,
+        values
+      )
     ]);
+
+    const requests = requestsResult.rows;
+    const total = parseInt(totalResult.rows[0].count);
 
     res.json({
       success: true,
@@ -234,7 +240,6 @@ export const getRecentRequests = async (req, res) => {
   }
 };
 
-// GET /metrics/errors - Failed requests for debugging
 export const getErrors = async (req, res) => {
   try {
     const { limit = 100, page = 1, apiKey, minStatus = 400 } = req.query;
@@ -244,30 +249,41 @@ export const getErrors = async (req, res) => {
     };
     if (apiKey) filter.apiKey = apiKey;
 
-    const skip = (parseInt(page) - 1) * parseInt(limit);
+    const offset = (parseInt(page) - 1) * parseInt(limit);
 
-    const [errors, total] = await Promise.all([
-      Request.find(filter)
-        .sort({ timestamp: -1 })
-        .limit(parseInt(limit))
-        .skip(skip)
-        .select('-__v')
-        .lean(),
-      Request.countDocuments(filter)
+    // Build SQL query
+    const conditions = [`status >= $1`];
+    const values = [parseInt(minStatus)];
+    let paramCount = 2;
+
+    if (apiKey) {
+      conditions.push(`api_key = $${paramCount++}`);
+      values.push(apiKey);
+    }
+
+    const whereClause = `WHERE ${conditions.join(' AND ')}`;
+
+    const [errorsResult, totalResult, summaryResult] = await Promise.all([
+      query(
+        `SELECT * FROM requests ${whereClause} ORDER BY timestamp DESC LIMIT $${paramCount} OFFSET $${paramCount + 1}`,
+        [...values, parseInt(limit), offset]
+      ),
+      query(
+        `SELECT COUNT(*) as count FROM requests ${whereClause}`,
+        values
+      ),
+      query(
+        `SELECT status as _id, COUNT(*) as count, ARRAY_AGG(DISTINCT endpoint) as endpoints 
+         FROM requests ${whereClause} 
+         GROUP BY status 
+         ORDER BY count DESC`,
+        values
+      )
     ]);
 
-    // Group errors by status code
-    const errorsByStatus = await Request.aggregate([
-      { $match: filter },
-      {
-        $group: {
-          _id: "$status",
-          count: { $sum: 1 },
-          endpoints: { $addToSet: "$endpoint" }
-        }
-      },
-      { $sort: { count: -1 } }
-    ]);
+    const errors = errorsResult.rows;
+    const total = parseInt(totalResult.rows[0].count);
+    const errorsByStatus = summaryResult.rows;
 
     res.json({
       success: true,

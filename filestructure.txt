@@ -8,13 +8,16 @@
 |-- d1.png
 |-- devmetrics-backend
     |-- .env
+    |-- .env.production
     |-- .gitignore
     |-- app.js
     |-- config
         |-- apiRegistry.js
+        |-- bootstrap.js
         |-- db.js
     |-- controllers
         |-- apiKeyController.js
+        |-- authController.js
         |-- logsController.js
         |-- trackController.js
     |-- middleware
@@ -22,15 +25,30 @@
     |-- models
         |-- ApiKey.js
         |-- Request.js
+    |-- on package-lock.json
     |-- package-lock.json
     |-- package.json
     |-- README.md
     |-- routes
         |-- apiKey.js
+        |-- auth.js
         |-- logs.js
         |-- track.js
     |-- scripts
+        |-- addUserColumns.js
+        |-- checkPassword.js
+        |-- checkSchema.js
+        |-- debugApiKey.js
         |-- seedApiKey.js
+        |-- setup.js
+        |-- testBackend.js
+        |-- testConnectionOptions.js
+        |-- testEndpoints.js
+        |-- testPasswordDirect.js
+        |-- testProductionMode.js
+        |-- testSimpleConnection.js
+        |-- testSupabaseConnection.js
+        |-- testWithPooling.js
     |-- utils
         |-- alert.js
 |-- devmetrics-dashboard
@@ -54,6 +72,8 @@
     |-- README.md
     |-- src
         |-- app
+            |-- api-key
+                |-- page.js
             |-- components
                 |-- ChartCard.jsx
                 |-- Loader.jsx
@@ -68,11 +88,18 @@
             |-- hooks
                 |-- useFetch.js
             |-- layout.js
+            |-- layouts
+                |-- AuthLayout.js
             |-- lib
                 |-- api.js
+                |-- supabase.js
+            |-- login
+                |-- page.js
             |-- metrics
                 |-- page.js
             |-- page.js
+            |-- signup
+                |-- page.js
             |-- utils
                 |-- formatters.js
 |-- devmetrics-sdk
@@ -90,5 +117,7 @@
         |-- wrapAxios.js
         |-- wrapFetch.js
 |-- git
+|-- package-lock.json
+|-- package.json
 |-- README.md
 |-- vercel.json

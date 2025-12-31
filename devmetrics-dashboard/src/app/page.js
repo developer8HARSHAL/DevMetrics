@@ -10,6 +10,7 @@ import Loader from './components/Loader';
 import { fetchOverview, getApiKey, setApiKey, clearApiKey, getDemoData } from './lib/api';
 import { formatNumber, formatResponseTime, formatPercentage } from './utils/formatters';
 
+
 const STATUS_COLORS = ['#4ade80', '#60a5fa', '#fbbf24', '#f87171'];
 const METHOD_COLORS = ['#60a5fa', '#4ade80', '#fbbf24', '#a78bfa', '#f87171'];
 

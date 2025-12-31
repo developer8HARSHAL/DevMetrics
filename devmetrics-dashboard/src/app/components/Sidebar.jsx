@@ -1,18 +1,33 @@
 'use client'
 
 import { useRouter, usePathname } from 'next/navigation';
-import { LayoutDashboard, BarChart3, FileText, AlertCircle, Activity } from 'lucide-react';
+import { LayoutDashboard, BarChart3, FileText, AlertCircle, Activity, Key, LogOut } from 'lucide-react';
+import { supabase } from '../lib/supabase';
+import { useState } from 'react';
 
 export default function Sidebar() {
   const router = useRouter();
   const pathname = usePathname();
+  const [loggingOut, setLoggingOut] = useState(false);
 
   const navItems = [
     { href: '/', label: 'Dashboard', icon: LayoutDashboard },
     { href: '/metrics', label: 'Metrics', icon: BarChart3 },
     { href: '/logs', label: 'Logs', icon: FileText },
     { href: '/errors', label: 'Errors', icon: AlertCircle },
+    { href: '/api-key', label: 'API Key', icon: Key }
   ];
+
+  const handleLogout = async () => {
+    try {
+      setLoggingOut(true);
+      await supabase.auth.signOut();
+      router.push('/login');
+    } catch (error) {
+      console.error('Logout error:', error);
+      setLoggingOut(false);
+    }
+  };
 
   return (
     <aside className="w-64 bg-gray-50 min-h-screen flex flex-col p-6">
@@ -49,8 +64,17 @@ export default function Sidebar() {
         })}
       </nav>
 
-      {/* Footer */}
-      <div className="mt-auto pt-6">
+      {/* Logout Button */}
+      <div className="mt-auto pt-6 space-y-4">
+        <button
+          onClick={handleLogout}
+          disabled={loggingOut}
+          className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-red-600 hover:bg-red-50 transition-all text-left disabled:opacity-50"
+        >
+          <LogOut size={20} />
+          <span>{loggingOut ? 'Logging out...' : 'Logout'}</span>
+        </button>
+
         <div className="text-xs text-gray-500">
           <p>Version 1.0.0</p>
         </div>

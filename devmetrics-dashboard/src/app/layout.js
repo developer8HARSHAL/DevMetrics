@@ -1,5 +1,5 @@
 import "./globals.css";
-import Sidebar from "./components/Sidebar";
+import { AuthLayout } from "./layouts/AuthLayout";
 
 export const metadata = {
   title: "DevMetrics Dashboard",
@@ -10,12 +10,9 @@ export default function RootLayout({ children }) {
   return (
     <html lang="en">
       <body className="antialiased">
-        <div className="flex min-h-screen bg-gray-50">
-          <Sidebar />
-          <main className="flex-1 overflow-auto">
-            {children}
-          </main>
-        </div>
+        <AuthLayout>
+          {children}
+        </AuthLayout>
       </body>
     </html>
   );
