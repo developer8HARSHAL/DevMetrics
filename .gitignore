@@ -69,7 +69,6 @@ coverage/
 # Backend-specific ignores
 # =================================================
 devmetrics-backend/uploads/
-devmetrics-backend/mongo-data/
 devmetrics-backend/.env*
 
 # =================================================
@@ -81,10 +80,20 @@ devmetrics-sdk/example/dist/
 # =================================================
 # Dashboard-specific ignores
 # =================================================
-devmetrics-dashboard/.next/
-devmetrics-dashboard/out/
+devmetrics-dashboard/.env.local
+devmetrics-dashboard/npm-debug.log*
 
 # =================================================
 # Deployment
 # =================================================
 .vercel/
+**/.vercel/
+
+test-results/
+**/test-results/
+playwright-report/
+
+devmetrics-sdk/dist/
+
+devmetrics-dashboard/.env.local
+devmetrics-dashboard/npm-debug.log*

@@ -1,6 +1,5 @@
 |-- .gitattributes
 |-- .gitignore
-|-- .txt
 |-- .vercel
     |-- project.json
     |-- README.txt
@@ -23,7 +22,6 @@
     |-- models
         |-- ApiKey.js
         |-- Request.js
-    |-- on package-lock.json
     |-- package-lock.json
     |-- package.json
     |-- README.md
@@ -34,19 +32,8 @@
         |-- track.js
     |-- scripts
         |-- addUserColumns.js
-        |-- checkPassword.js
-        |-- checkSchema.js
-        |-- debugApiKey.js
         |-- seedApiKey.js
         |-- setup.js
-        |-- testBackend.js
-        |-- testConnectionOptions.js
-        |-- testEndpoints.js
-        |-- testPasswordDirect.js
-        |-- testProductionMode.js
-        |-- testSimpleConnection.js
-        |-- testSupabaseConnection.js
-        |-- testWithPooling.js
     |-- utils
         |-- alert.js
 |-- devmetrics-dashboard
