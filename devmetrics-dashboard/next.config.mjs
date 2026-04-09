@@ -1,8 +1,8 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
-  
-  // Ensure proper path resolution
+  turbopack: {},  // ← add this
+
   webpack: (config, { isServer }) => {
     if (!isServer) {
       config.resolve.fallback = {
@@ -14,10 +14,7 @@ const nextConfig = {
     }
     return config;
   },
-  
-  
-  
-  // Image optimization
+
   images: {
     unoptimized: true,
   },
