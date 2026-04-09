@@ -27,9 +27,9 @@ export default function Dashboard() {
     try {
       setLoading(true);
       setError(null);
-      
+
       const apiKey = getApiKey();
-      
+
       // If no API key, show demo data
       if (!apiKey) {
         setData(getDemoData());
@@ -41,7 +41,7 @@ export default function Dashboard() {
       // Try to fetch real data
       const response = await fetchOverview();
       const fetchedData = response.data.data;
-      
+
       // If no real data exists, show demo data with a note
       if (!fetchedData || fetchedData.totalRequests === 0) {
         setData(getDemoData());
@@ -52,7 +52,7 @@ export default function Dashboard() {
       }
     } catch (err) {
       console.error('Dashboard error:', err);
-      
+
       // On error, show demo data instead of breaking
       setData(getDemoData());
       setIsDemo(true);
@@ -66,12 +66,12 @@ export default function Dashboard() {
     const savedKey = getApiKey();
     setCurrentApiKey(savedKey || '');
     loadData();
-    
+
     // Refresh every 30 seconds only if we have a real API key
     const interval = setInterval(() => {
       if (getApiKey()) loadData();
     }, 30000);
-    
+
     return () => clearInterval(interval);
   }, []);
 
@@ -108,7 +108,7 @@ export default function Dashboard() {
   return (
     <div>
       <Navbar onRefresh={loadData} loading={loading} />
-      
+
       <div className="p-8 space-y-6">
         {/* API Key Banner */}
         {isDemo && (
@@ -123,7 +123,7 @@ export default function Dashboard() {
                     {currentApiKey ? 'No Data Yet - Start Tracking!' : 'Demo Dashboard'}
                   </h3>
                   <p className="text-sm text-gray-600 mb-3">
-                    {currentApiKey 
+                    {currentApiKey
                       ? 'API key connected! Integrate the SDK in your app to see real data here.'
                       : 'You\'re viewing demo data. Connect your API key to see real metrics.'}
                   </p>
@@ -238,8 +238,8 @@ export default function Dashboard() {
               <AreaChart data={data?.requestsOverTime || []}>
                 <defs>
                   <linearGradient id="colorRequests" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#60a5fa" stopOpacity={0.1}/>
-                    <stop offset="95%" stopColor="#60a5fa" stopOpacity={0}/>
+                    <stop offset="5%" stopColor="#60a5fa" stopOpacity={0.1} />
+                    <stop offset="95%" stopColor="#60a5fa" stopOpacity={0} />
                   </linearGradient>
                 </defs>
                 <CartesianGrid strokeDasharray="3 3" stroke="#f3f4f6" vertical={false} />
@@ -250,6 +250,8 @@ export default function Dashboard() {
                   tickLine={false}
                 />
                 <YAxis
+                  yAxisId="right"
+                  orientation="right"
                   tick={{ fontSize: 12, fill: '#9ca3af' }}
                   axisLine={false}
                   tickLine={false}
@@ -262,13 +264,15 @@ export default function Dashboard() {
                     fontSize: '12px'
                   }}
                 />
+
                 <Area
                   type="monotone"
-                  dataKey="count"
-                  stroke="#60a5fa"
+                  dataKey="avgResponseTime"
+                  stroke="#fbbf24"
                   strokeWidth={2}
-                  fill="url(#colorRequests)"
-                  name="Requests"
+                  fill="none"
+                  name="Avg Response (ms)"
+                  yAxisId="right"
                 />
               </AreaChart>
             </ResponsiveContainer>
@@ -364,11 +368,11 @@ export default function Dashboard() {
                 <X size={20} />
               </button>
             </div>
-            
+
             <p className="text-sm text-gray-600 mb-4">
               Enter your DevMetrics API key to see your application's real-time metrics.
             </p>
-            
+
             <input
               type="text"
               value={apiKeyInput}
@@ -377,7 +381,7 @@ export default function Dashboard() {
               className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 mb-4"
               onKeyPress={(e) => e.key === 'Enter' && handleSaveApiKey()}
             />
-            
+
             <div className="flex gap-3">
               <button
                 onClick={() => {
@@ -396,10 +400,10 @@ export default function Dashboard() {
                 Connect
               </button>
             </div>
-            
+
             <div className="mt-4 p-3 bg-gray-50 rounded-lg">
               <p className="text-xs text-gray-600">
-                <strong>Don't have an API key?</strong><br/>
+                <strong>Don't have an API key?</strong><br />
                 Contact your DevMetrics admin to generate one.
               </p>
             </div>

@@ -21,7 +21,9 @@ export default function Sidebar() {
   const handleLogout = async () => {
     try {
       setLoggingOut(true);
-      await supabase.auth.signOut();
+      if (supabase) {
+        await supabase.auth.signOut();
+      }
       router.push('/login');
     } catch (error) {
       console.error('Logout error:', error);

@@ -4,8 +4,6 @@
 |-- .vercel
     |-- project.json
     |-- README.txt
-|-- content.txt
-|-- d1.png
 |-- devmetrics-backend
     |-- .env
     |-- .env.production
@@ -64,11 +62,6 @@
     |-- package.json
     |-- postcss.config.mjs
     |-- public
-        |-- file.svg
-        |-- globe.svg
-        |-- next.svg
-        |-- vercel.svg
-        |-- window.svg
     |-- README.md
     |-- src
         |-- app
@@ -81,6 +74,7 @@
                 |-- MetricCard.jsx
                 |-- Navbar.jsx
                 |-- Sidebar.jsx
+            |-- error.js
             |-- errors
                 |-- page.js
             |-- favicon.ico
@@ -116,8 +110,14 @@
         |-- utils.js
         |-- wrapAxios.js
         |-- wrapFetch.js
-|-- git
+|-- devmetrics_complete_doc.md
+|-- jest.config.js
+|-- jest.setup.js
 |-- package-lock.json
 |-- package.json
 |-- README.md
+|-- tests
+    |-- api.security.test.js
+    |-- metrics.contract.test.js
+    |-- sdk.integration.test.js
 |-- vercel.json

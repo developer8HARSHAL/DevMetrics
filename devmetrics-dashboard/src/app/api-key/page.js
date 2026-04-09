@@ -2,9 +2,10 @@
 
 import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
-import { Key, Copy, CheckCircle, AlertCircle, RefreshCw } from 'lucide-react';
+import { Key, Copy, CheckCircle, AlertCircle } from 'lucide-react';
 import Navbar from '../components/Navbar';
 import Loader from '../components/Loader';
+import { setApiKey as storeApiKey } from '../lib/api';
 
 export default function ApiKeyPage() {
   const [apiKey, setApiKey] = useState(null);
@@ -22,6 +23,13 @@ export default function ApiKeyPage() {
       setLoading(true);
       setError(null);
 
+      // Check if Supabase is configured
+      if (!supabase) {
+        setError('Authentication service not configured');
+        setLoading(false);
+        return;
+      }
+
       // Get current user from Supabase
       const { data: { user } } = await supabase.auth.getUser();
 
@@ -32,9 +40,11 @@ export default function ApiKeyPage() {
 
       setUser(user);
 
-      // Fetch API key from backend
-      // Fetch API key from backend
-      const url = `${process.env.NEXT_PUBLIC_BACKEND_URL}/auth/api-key/${user.id}`;
+      // ✅ FIX: Properly construct URL without double slashes
+      const backendUrl = (process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:5000')
+        .replace(/\/+$/, ''); // Remove ALL trailing slashes
+
+      const url = `${backendUrl}/auth/api-key/${user.id}`;
       console.log('Fetching from:', url);
 
       const response = await fetch(url);
@@ -47,8 +57,9 @@ export default function ApiKeyPage() {
         throw new Error(`Failed to fetch API key: ${response.status} - ${errorText}`);
       }
 
-      const data = await response.json();
-      setApiKey(data.data);
+      const result = await response.json();
+      setApiKey(result.data);
+      storeApiKey(result.data.key); 
 
     } catch (err) {
       console.error('Error loading API key:', err);
@@ -117,8 +128,8 @@ export default function ApiKeyPage() {
           <div className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
             {/* Status Banner */}
             <div className={`px-6 py-3 ${apiKey.status === 'active'
-                ? 'bg-green-50 border-b border-green-100'
-                : 'bg-gray-50 border-b border-gray-200'
+              ? 'bg-green-50 border-b border-green-100'
+              : 'bg-gray-50 border-b border-gray-200'
               }`}>
               <div className="flex items-center gap-2">
                 <CheckCircle
@@ -232,7 +243,7 @@ export default function ApiKeyPage() {
 
 init({
   apiKey: '${apiKey?.key || 'YOUR_API_KEY'}',
-  backendUrl: '${process.env.NEXT_PUBLIC_BACKEND_URL}',
+  backendUrl: '${(process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:5000').replace(/\/+$/, '')}',
   trackFetch: true  // Auto-track fetch requests
 });`}
                 </pre>

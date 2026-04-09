@@ -1,4 +1,4 @@
-import "../devmetrics-backend/config/bootstrap.js"; // 🔑 MUST BE FIRST
+import "./config/bootstrap.js";
 
 import express from "express";
 import cors from "cors";

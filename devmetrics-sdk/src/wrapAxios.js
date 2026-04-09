@@ -10,12 +10,11 @@ export const wrapAxios = () => {
   }
 
   try {
-    const axios = globalThis.axios || require('axios');
-
-    if (!axios || !axios.interceptors) {
-      console.warn('DevMetrics SDK: axios not found. Make sure axios is installed.');
-      return;
-    }
+   const axios = globalThis.axios;
+if (!axios || !axios.interceptors) {
+  console.warn('DevMetrics SDK: axios not found on globalThis. Pass axios instance manually.');
+  return;
+}
 
     const config = getConfig();
 

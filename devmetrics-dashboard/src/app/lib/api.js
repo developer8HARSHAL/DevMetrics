@@ -1,18 +1,20 @@
 import axios from 'axios';
 
 const api = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:5000',
+  baseURL: (process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:5000')
+    .replace(/\/$/, ''),
   headers: {
     'Content-Type': 'application/json',
     'x-admin-key': process.env.NEXT_PUBLIC_ADMIN_KEY || ''
   },
-  timeout: 30000 // Increased from 10000 to 30000 (30 seconds)
+  timeout: 60000
 });
+
 
 // Store API key
 let userApiKey = null;
 
-// Set API key (called when user enters their key)
+// Set API key
 export const setApiKey = (key) => {
   userApiKey = key;
   if (typeof window !== 'undefined') {
@@ -28,7 +30,7 @@ export const getApiKey = () => {
   return userApiKey;
 };
 
-// Clear API key (logout)
+// Clear API key
 export const clearApiKey = () => {
   userApiKey = null;
   if (typeof window !== 'undefined') {
@@ -39,34 +41,28 @@ export const clearApiKey = () => {
 // Request interceptor
 api.interceptors.request.use(
   (config) => {
-    console.log(`API Request: ${config.method?.toUpperCase()} ${config.url}`);
+    if (process.env.NODE_ENV === 'development') {
+      console.log(`API Request: ${config.method?.toUpperCase()} ${config.url}`);
+    }
     return config;
   },
-  (error) => {
-    return Promise.reject(error);
-  }
+  (error) => Promise.reject(error)
 );
 
-// Response interceptor with better error handling
+// Response interceptor
 api.interceptors.response.use(
-  (response) => {
-    return response;
-  },
+  (response) => response,
   (error) => {
     if (error.code === 'ECONNABORTED') {
-      console.error('Request Timeout - Backend might be cold starting');
       error.message = 'Request timeout. Please try again.';
-    } else if (error.response) {
-      console.error('API Error:', error.response.status, error.response.data);
-    } else if (error.request) {
-      console.error('Network Error:', error.message);
+    } else if (!error.response) {
       error.message = 'Cannot connect to backend. Please check your connection.';
     }
     return Promise.reject(error);
   }
 );
 
-// API Methods - Now include apiKey if available
+// API Methods
 export const fetchOverview = (params = {}) => {
   const apiKey = getApiKey();
   return api.get('/logs/metrics/overview', { 
@@ -98,8 +94,8 @@ export const fetchErrors = (params = {}) => {
 // Demo data for when no API key or no real data exists
 export const getDemoData = () => ({
   totalRequests: 1247,
-  successRate: "94.40",
-  avgResponseTime: "142.50",
+  successRate: 94.40,  // Number, not string
+  avgResponseTime: 142.50,  // Number, not string
   minResponseTime: 23,
   maxResponseTime: 1580,
   requestsByStatus: [
@@ -143,26 +139,6 @@ export const getDemoEndpoints = () => [
     successRate: 92.5,
     errorRate: 7.5,
     methods: ["GET", "POST", "PUT", "DELETE"]
-  },
-  {
-    endpoint: "/api/auth/login",
-    totalRequests: 189,
-    avgResponseTime: 95.2,
-    minResponseTime: 34,
-    maxResponseTime: 456,
-    successRate: 98.4,
-    errorRate: 1.6,
-    methods: ["POST"]
-  },
-  {
-    endpoint: "/api/products",
-    totalRequests: 288,
-    avgResponseTime: 167.8,
-    minResponseTime: 56,
-    maxResponseTime: 980,
-    successRate: 94.1,
-    errorRate: 5.9,
-    methods: ["GET"]
   }
 ];
 

@@ -20,9 +20,9 @@ export default function MetricsPage() {
     try {
       setLoading(true);
       setError(null);
-      
+
       const apiKey = getApiKey();
-      
+
       // If no API key, show demo data
       if (!apiKey) {
         setData(getDemoEndpoints());
@@ -34,7 +34,7 @@ export default function MetricsPage() {
       // Try to fetch real data
       const response = await fetchEndpointMetrics();
       const fetchedData = response.data.data;
-      
+
       // If no real data, show demo
       if (!fetchedData || fetchedData.length === 0) {
         setData(getDemoEndpoints());
@@ -45,7 +45,7 @@ export default function MetricsPage() {
       }
     } catch (err) {
       console.error('Metrics error:', err);
-      
+
       // On error, show demo data
       setData(getDemoEndpoints());
       setIsDemo(true);
@@ -75,13 +75,13 @@ export default function MetricsPage() {
 
   return (
     <div>
-      <Navbar 
-        onRefresh={loadData} 
-        loading={loading} 
-        title="Detailed Metrics" 
+      <Navbar
+        onRefresh={loadData}
+        loading={loading}
+        title="Detailed Metrics"
         subtitle={isDemo ? "Demo Data - Add API key for live metrics" : "Endpoint-level performance analysis"}
       />
-      
+
       <div className="p-8 space-y-6">
         {/* Top Endpoints */}
         <div>
@@ -173,6 +173,13 @@ export default function MetricsPage() {
                     Avg Time
                   </th>
                   <th className="px-4 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wide">
+                    Error Rate
+                  </th>
+
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wide">
+                    Min / Max
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wide">
                     Success Rate
                   </th>
                   <th className="px-4 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wide">
@@ -192,12 +199,22 @@ export default function MetricsPage() {
                     <td className="px-4 py-3 text-sm text-gray-900">
                       {formatResponseTime(endpoint.avgResponseTime)}
                     </td>
+                    <td className="px-4 py-3 text-sm text-gray-900">
+                      <span className={`font-semibold ${endpoint.errorRate > 20 ? 'text-red-600' :
+                          endpoint.errorRate > 5 ? 'text-amber-600' :
+                            'text-green-600'
+                        }`}>
+                        {formatPercentage(endpoint.errorRate)}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3 text-sm text-gray-500">
+                      {formatResponseTime(endpoint.minResponseTime)} / {formatResponseTime(endpoint.maxResponseTime)}
+                    </td>
                     <td className="px-4 py-3 text-sm">
-                      <span className={`font-semibold ${
-                        endpoint.successRate > 95 ? 'text-green-600' :
+                      <span className={`font-semibold ${endpoint.successRate > 95 ? 'text-green-600' :
                         endpoint.successRate > 80 ? 'text-amber-600' :
-                        'text-red-600'
-                      }`}>
+                          'text-red-600'
+                        }`}>
                         {formatPercentage(endpoint.successRate)}
                       </span>
                     </td>

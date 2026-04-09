@@ -1,13 +1,17 @@
-// Format number with commas
+// Format number with commas (handles strings and numbers)
 export const formatNumber = (num) => {
-  if (num === null || num === undefined) return '0';
-  return new Intl.NumberFormat('en-US').format(num);
+  if (num === null || num === undefined || num === '') return '0';
+  const parsed = typeof num === 'string' ? parseFloat(num) : num;
+  if (isNaN(parsed)) return '0';
+  return new Intl.NumberFormat('en-US').format(parsed);
 };
 
-// Format response time in ms
+// Format response time in ms (handles strings and numbers)
 export const formatResponseTime = (ms) => {
-  if (ms === null || ms === undefined) return '0ms';
-  const num = parseFloat(ms);
+  if (ms === null || ms === undefined || ms === '') return '0ms';
+  const num = typeof ms === 'string' ? parseFloat(ms) : ms;
+  if (isNaN(num)) return '0ms';
+  
   if (num < 1000) {
     return `${num.toFixed(0)}ms`;
   }
@@ -18,6 +22,8 @@ export const formatResponseTime = (ms) => {
 export const formatDate = (date) => {
   if (!date) return 'N/A';
   const d = new Date(date);
+  if (isNaN(d.getTime())) return 'N/A';
+  
   return d.toLocaleDateString('en-US', {
     month: 'short',
     day: 'numeric',
@@ -31,6 +37,8 @@ export const formatDate = (date) => {
 export const formatDateShort = (date) => {
   if (!date) return 'N/A';
   const d = new Date(date);
+  if (isNaN(d.getTime())) return 'N/A';
+  
   return d.toLocaleDateString('en-US', {
     month: 'short',
     day: 'numeric',
@@ -39,27 +47,31 @@ export const formatDateShort = (date) => {
   });
 };
 
-// Format percentage
+// Format percentage (handles strings and numbers)
 export const formatPercentage = (value) => {
-  if (value === null || value === undefined) return '0%';
-  return `${parseFloat(value).toFixed(1)}%`;
+  if (value === null || value === undefined || value === '') return '0%';
+  const num = typeof value === 'string' ? parseFloat(value) : value;
+  if (isNaN(num)) return '0%';
+  return `${num.toFixed(1)}%`;
 };
 
 // Get status color based on HTTP status code
 export const getStatusColor = (status) => {
-  if (status < 200) return 'text-blue-600';
-  if (status < 300) return 'text-green-600';
-  if (status < 400) return 'text-yellow-600';
-  if (status < 500) return 'text-orange-600';
+  const code = typeof status === 'string' ? parseInt(status) : status;
+  if (code < 200) return 'text-blue-600';
+  if (code < 300) return 'text-green-600';
+  if (code < 400) return 'text-yellow-600';
+  if (code < 500) return 'text-orange-600';
   return 'text-red-600';
 };
 
 // Get status badge color
 export const getStatusBadgeColor = (status) => {
-  if (status < 200) return 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300';
-  if (status < 300) return 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300';
-  if (status < 400) return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300';
-  if (status < 500) return 'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-300';
+  const code = typeof status === 'string' ? parseInt(status) : status;
+  if (code < 200) return 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300';
+  if (code < 300) return 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300';
+  if (code < 400) return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300';
+  if (code < 500) return 'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-300';
   return 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300';
 };
 

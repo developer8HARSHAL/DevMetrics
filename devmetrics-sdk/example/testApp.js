@@ -1,7 +1,7 @@
 import { init, track } from '../index.js';
 
 // ⚠️ IMPORTANT: Replace with your actual API key from 'npm run seed'
-const API_KEY = 'dm_25c2dfd79cf245f79527364818189809114d4f07026be5f17dc9d8eb7038963c';
+const API_KEY = 'dm_15bb2ac3a9d8918a4d973305db1ae7035bbcc07b4275a90687e360f430ae5008';
 
 // Initialize SDK
 init({

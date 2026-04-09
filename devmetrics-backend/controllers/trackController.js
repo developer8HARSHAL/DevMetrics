@@ -1,80 +1,26 @@
 import Request from "../models/Request.js";
 import ApiKey from "../models/ApiKey.js";
 
-const validateTrackData = (data) => {
-  const errors = [];
-  
-  if (!data.apiKey || typeof data.apiKey !== 'string') {
-    errors.push('apiKey is required and must be a string');
-  }
-  
-  if (!data.endpoint || typeof data.endpoint !== 'string') {
-    errors.push('endpoint is required and must be a string');
-  }
-  
-  if (!data.method || typeof data.method !== 'string') {
-    errors.push('method is required and must be a string');
-  }
-  
-  if (data.status === undefined || typeof data.status !== 'number') {
-    errors.push('status is required and must be a number');
-  } else if (data.status < 100 || data.status > 599) {
-    errors.push('status must be a valid HTTP status code (100-599)');
-  }
-  
-  if (data.responseTime === undefined || typeof data.responseTime !== 'number') {
-    errors.push('responseTime is required and must be a number');
-  } else if (data.responseTime < 0) {
-    errors.push('responseTime must be a non-negative number');
-  }
-  
-  if (data.timestamp && isNaN(Date.parse(data.timestamp))) {
-    errors.push('timestamp must be a valid ISO date string');
-  }
-  
-  return errors;
-};
-
 export const handleTrack = async (req, res) => {
   try {
-    const { apiKey, endpoint, method, status, responseTime, timestamp } = req.body;
+    const { endpoint, method, status, responseTime, timestamp, apiKey } = req.body;
 
-    const validationErrors = validateTrackData(req.body);
-    if (validationErrors.length > 0) {
-      return res.status(400).json({ 
-        success: false,
-        message: "Validation failed",
-        errors: validationErrors 
-      });
-    }
+    // req.apiKeyDoc already validated by auth middleware
+    const apiKeyDoc = req.apiKeyDoc;
 
-    const apiKeyDoc = await ApiKey.findOne({ key: apiKey });
-    
-    if (!apiKeyDoc) {
-      return res.status(401).json({ 
-        success: false,
-        message: "Invalid API key" 
-      });
-    }
-
-    if (!ApiKey.isValid(apiKeyDoc)) {
-      return res.status(401).json({ 
-        success: false,
-        message: "API key is inactive or expired" 
-      });
-    }
-
+    // Rate limit check
     const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000);
     const recentRequests = await Request.countDocuments({
-      apiKey: apiKey,
+      apiKey,
       timestamp: { $gte: oneHourAgo }
     });
 
-    if (recentRequests >= apiKeyDoc.requests_per_hour) {
+    const hourlyLimit = apiKeyDoc.requests_per_hour || 10000;
+    if (recentRequests >= hourlyLimit) {
       return res.status(429).json({
         success: false,
         message: "Rate limit exceeded",
-        limit: apiKeyDoc.requests_per_hour,
+        limit: hourlyLimit,
         resetAt: new Date(Date.now() + 60 * 60 * 1000).toISOString()
       });
     }
@@ -90,11 +36,11 @@ export const handleTrack = async (req, res) => {
 
     await newRequest.save();
 
-    ApiKey.incrementUsage(apiKey).catch(err => 
+    ApiKey.incrementUsage(apiKey).catch(err =>
       console.error('Failed to increment usage:', err)
     );
 
-    res.status(201).json({ 
+    res.status(201).json({
       success: true,
       message: "Request tracked successfully",
       id: newRequest.id
@@ -102,7 +48,7 @@ export const handleTrack = async (req, res) => {
 
   } catch (err) {
     console.error('Track error:', err);
-    res.status(500).json({ 
+    res.status(500).json({
       success: false,
       message: "Failed to track request",
       error: process.env.NODE_ENV === 'development' ? err.message : undefined

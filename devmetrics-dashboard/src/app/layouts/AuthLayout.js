@@ -16,6 +16,12 @@ export function AuthLayout({ children }) {
   const isPublicRoute = PUBLIC_ROUTES.includes(pathname);
 
   useEffect(() => {
+    // If Supabase is not configured, skip auth and allow access
+    if (!supabase) {
+      setLoading(false);
+      return;
+    }
+
     // Get initial session
     supabase.auth.getSession().then(({ data }) => {
       setSession(data.session);
@@ -30,24 +36,37 @@ export function AuthLayout({ children }) {
       if (data.session && isPublicRoute) {
         router.replace('/');
       }
+    }).catch((error) => {
+      console.error('Auth error:', error);
+      setLoading(false);
     });
 
     // Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setSession(session);
-      
-      // If user just logged in and on public route → go to dashboard
-      if (session && isPublicRoute) {
-        router.replace('/');
-      }
-      
-      // If user logged out and on protected route → go to login
-      if (!session && !isPublicRoute) {
-        router.replace('/login');
-      }
-    });
+    let subscription = null;
+    try {
+      const { data: { subscription: sub } } = supabase.auth.onAuthStateChange((_event, session) => {
+        setSession(session);
+        
+        // If user just logged in and on public route → go to dashboard
+        if (session && isPublicRoute) {
+          router.replace('/');
+        }
+        
+        // If user logged out and on protected route → go to login
+        if (!session && !isPublicRoute) {
+          router.replace('/login');
+        }
+      });
+      subscription = sub;
+    } catch (error) {
+      console.error('Auth state change error:', error);
+    }
 
-    return () => subscription.unsubscribe();
+    return () => {
+      if (subscription) {
+        subscription.unsubscribe();
+      }
+    };
   }, [pathname, isPublicRoute, router]);
 
   // Show loading only on initial load

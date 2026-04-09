@@ -10,9 +10,9 @@
     "setup": "node scripts/setup.js",
     "seed": "node scripts/seedApiKey.js",
     "dev:prod": "cross-env NODE_ENV=production nodemon app.js",
-    "test": "node scripts/testBackend.js",
-    "test:connection": "node scripts/testSupabaseConnection.js",
-    "test:endpoints": "node scripts/testEndpoints.js"
+    "test": "node --env-file=.env scripts/testBackend.js",
+    "test:connection": "node --env-file=.env scripts/testSupabaseConnection.js",
+    "test:endpoints": "node --env-file=.env scripts/testEndpoints.js"
   },
   "keywords": [
     "api",

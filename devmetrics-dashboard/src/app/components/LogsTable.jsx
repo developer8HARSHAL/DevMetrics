@@ -74,7 +74,7 @@ export default function LogsTable({ logs, pagination, onPageChange }) {
           </thead>
           <tbody className="divide-y divide-gray-100">
             {logs.map((log, index) => (
-              <tr key={log._id || index} className="hover:bg-gray-50 transition-colors">
+              <tr key={log.id || index} className="hover:bg-gray-50 transition-colors">
                 <td className="px-6 py-4 text-sm text-gray-900 font-mono">
                   {log.endpoint}
                 </td>
@@ -89,7 +89,7 @@ export default function LogsTable({ logs, pagination, onPageChange }) {
                   </span>
                 </td>
                 <td className="px-6 py-4 text-sm text-gray-900 font-medium">
-                  {formatResponseTime(log.responseTime)}
+                  {formatResponseTime(log.response_time)}
                 </td>
                 <td className="px-6 py-4 text-sm text-gray-500">
                   {formatDate(log.timestamp)}

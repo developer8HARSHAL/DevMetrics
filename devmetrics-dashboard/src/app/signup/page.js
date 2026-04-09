@@ -31,6 +31,12 @@ export default function SignupPage() {
       return;
     }
 
+    if (!supabase) {
+      setError('Authentication service not configured');
+      setLoading(false);
+      return;
+    }
+
     try {
       // Step 1: Create Supabase account
       const { data: authData, error: authError } = await supabase.auth.signUp({
