@@ -68,11 +68,18 @@ export const getUserApiKey = async (req, res) => {
     const apiKey = await ApiKey.findOne({ user_id: userId });
 
     if (!apiKey) {
-      return res.status(404).json({
-        success: false,
-        message: "API key not found for this user"
-      });
-    }
+  const key = ApiKey.generateKey();
+  apiKey = await ApiKey.create({
+    key,
+    owner: userId,
+    description: `Auto-generated for ${userId}`,
+    status: 'active',
+    requestsPerHour: 10000,
+    requestsPerDay: 100000,
+    expiresAt: null,
+    userId,
+  });
+}
 
     res.json({
       success: true,
