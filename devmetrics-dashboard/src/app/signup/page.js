@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '../lib/supabase';
+import { Activity, AlertCircle, CheckCircle } from 'lucide-react';
 
 export default function SignupPage() {
   const router = useRouter();
@@ -18,7 +19,6 @@ export default function SignupPage() {
     setLoading(true);
     setError(null);
 
-    // Validate passwords match
     if (password !== confirmPassword) {
       setError('Passwords do not match');
       setLoading(false);
@@ -38,7 +38,6 @@ export default function SignupPage() {
     }
 
     try {
-      // Step 1: Create Supabase account
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email,
         password,
@@ -46,14 +45,11 @@ export default function SignupPage() {
 
       if (authError) throw authError;
 
-      // Step 2: Create API key in your backend
       console.log('Creating API key for user:', authData.user.id);
-      
+
       const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/auth/register`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           userId: authData.user.id,
           email: authData.user.email,
@@ -72,8 +68,7 @@ export default function SignupPage() {
       console.log('API key created:', result);
 
       setSuccess(true);
-      
-      // Redirect to login after 2 seconds
+
       setTimeout(() => {
         router.push('/login');
       }, 2000);
@@ -86,19 +81,27 @@ export default function SignupPage() {
     }
   };
 
+  // Success state
   if (success) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="bg-white p-8 rounded-lg shadow-md w-full max-w-md">
-          <div className="text-center">
-            <div className="text-green-600 text-5xl mb-4">✓</div>
-            <h2 className="text-2xl font-bold text-gray-900 mb-2">Account Created!</h2>
-            <p className="text-gray-600 mb-4">
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+        <div className="w-full max-w-sm">
+          <div className="flex flex-col items-center mb-8">
+            <div className="w-10 h-10 bg-gray-900 rounded-xl flex items-center justify-center mb-4">
+              <Activity className="text-white" size={20} />
+            </div>
+            <h1 className="text-2xl font-bold text-gray-900">DevMetrics</h1>
+          </div>
+
+          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-8 text-center space-y-3">
+            <div className="w-12 h-12 bg-emerald-50 rounded-full flex items-center justify-center mx-auto">
+              <CheckCircle className="text-emerald-500" size={24} />
+            </div>
+            <h2 className="text-lg font-bold text-gray-900">Account Created!</h2>
+            <p className="text-sm text-gray-500">
               Check your email to verify your account.
             </p>
-            <p className="text-sm text-gray-500">
-              Redirecting to login...
-            </p>
+            <p className="text-xs text-gray-400">Redirecting to login...</p>
           </div>
         </div>
       </div>
@@ -106,80 +109,96 @@ export default function SignupPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50">
-      <form
-        onSubmit={handleSignup}
-        className="bg-white p-8 rounded-lg shadow-md w-full max-w-md space-y-4"
-      >
-        <div className="text-center mb-6">
-          <h1 className="text-2xl font-bold">Create Account</h1>
-          <p className="text-gray-600 text-sm mt-1">Sign up for DevMetrics</p>
-        </div>
+    <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+      <div className="w-full max-w-sm">
 
-        {error && (
-          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
-            {error}
+        {/* Brand */}
+        <div className="flex flex-col items-center mb-8">
+          <div className="w-10 h-10 bg-gray-900 rounded-xl flex items-center justify-center mb-4">
+            <Activity className="text-white" size={20} />
           </div>
-        )}
-
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Email
-          </label>
-          <input
-            type="email"
-            placeholder="you@example.com"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-            className="w-full border border-gray-300 px-3 py-2 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
-          />
+          <h1 className="text-2xl font-bold text-gray-900">DevMetrics</h1>
+          <p className="text-sm text-gray-400 mt-1">Create your account</p>
         </div>
 
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Password
-          </label>
-          <input
-            type="password"
-            placeholder="••••••••"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-            className="w-full border border-gray-300 px-3 py-2 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
-          />
-          <p className="text-xs text-gray-500 mt-1">At least 6 characters</p>
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Confirm Password
-          </label>
-          <input
-            type="password"
-            placeholder="••••••••"
-            value={confirmPassword}
-            onChange={(e) => setConfirmPassword(e.target.value)}
-            required
-            className="w-full border border-gray-300 px-3 py-2 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
-          />
-        </div>
-
-        <button
-          type="submit"
-          disabled={loading}
-          className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+        {/* Card */}
+        <form
+          onSubmit={handleSignup}
+          className="bg-white rounded-2xl border border-gray-100 shadow-sm p-8 space-y-5"
         >
-          {loading ? 'Creating account...' : 'Sign Up'}
-        </button>
+          {/* Error */}
+          {error && (
+            <div className="flex items-center gap-2.5 bg-red-50 border border-red-100 rounded-xl px-4 py-3">
+              <AlertCircle className="text-red-500 shrink-0" size={16} />
+              <p className="text-sm text-red-600">{error}</p>
+            </div>
+          )}
 
-        <div className="text-center text-sm">
-          <span className="text-gray-600">Already have an account? </span>
-          <a href="/login" className="text-blue-600 hover:text-blue-700 font-medium">
-            Login
-          </a>
-        </div>
-      </form>
+          {/* Email */}
+          <div className="space-y-1.5">
+            <label className="block text-xs font-semibold text-gray-400 uppercase tracking-wider">
+              Email
+            </label>
+            <input
+              type="email"
+              placeholder="you@example.com"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+              className="w-full px-4 py-2.5 text-sm border border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            />
+          </div>
+
+          {/* Password */}
+          <div className="space-y-1.5">
+            <label className="block text-xs font-semibold text-gray-400 uppercase tracking-wider">
+              Password
+            </label>
+            <input
+              type="password"
+              placeholder="••••••••"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+              className="w-full px-4 py-2.5 text-sm border border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            />
+            <p className="text-xs text-gray-400">At least 6 characters</p>
+          </div>
+
+          {/* Confirm Password */}
+          <div className="space-y-1.5">
+            <label className="block text-xs font-semibold text-gray-400 uppercase tracking-wider">
+              Confirm Password
+            </label>
+            <input
+              type="password"
+              placeholder="••••••••"
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+              required
+              className="w-full px-4 py-2.5 text-sm border border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            />
+          </div>
+
+          {/* Submit */}
+          <button
+            type="submit"
+            disabled={loading}
+            className="w-full bg-gray-900 text-white text-sm font-medium py-2.5 rounded-xl hover:bg-gray-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed mt-1"
+          >
+            {loading ? 'Creating account...' : 'Create account'}
+          </button>
+
+          {/* Login link */}
+          <p className="text-center text-sm text-gray-400">
+            Already have an account?{' '}
+            <a href="/login" className="text-blue-600 font-medium hover:text-blue-700">
+              Sign in
+            </a>
+          </p>
+        </form>
+
+      </div>
     </div>
   );
 }

@@ -50,7 +50,6 @@ export default function Sidebar() {
           const isActive = pathname === item.href;
 
           return (
-            <div>
             <button
               key={item.href}
               onClick={() => router.push(item.href)}
@@ -65,7 +64,6 @@ export default function Sidebar() {
             </button>
 
 
-            </div>
 
             
           );
