@@ -16,7 +16,7 @@ export default function MetricCard({ title, value, subtitle, icon: Icon, trend, 
   };
 
   return (
-    <div className="bg-white rounded-2xl p-6 border border-gray-100">
+    <div className="bg-gray-200 rounded-2xl p-6 border border-gray-100">
       <div className="flex items-start justify-between mb-4">
         <div className={`p-3 rounded-xl ${iconBgColors[color]}`}>
           <Icon size={24} className={iconColors[color]} strokeWidth={1.5} />

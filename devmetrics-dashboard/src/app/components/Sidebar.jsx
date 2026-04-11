@@ -32,7 +32,7 @@ export default function Sidebar() {
   };
 
   return (
-    <aside className="w-64 bg-gray-50 min-h-screen flex flex-col p-6">
+    <aside className="w-64 bg-gray-200 min-h-screen flex flex-col p-6">
       {/* Logo */}
       <div className="mb-12">
         <div className="flex items-center gap-3 mb-8">
@@ -50,6 +50,7 @@ export default function Sidebar() {
           const isActive = pathname === item.href;
 
           return (
+            <div>
             <button
               key={item.href}
               onClick={() => router.push(item.href)}
@@ -59,15 +60,19 @@ export default function Sidebar() {
                   : 'text-gray-600 hover:text-gray-900 hover:bg-white/50'
               }`}
             >
-              <Icon size={20} strokeWidth={isActive ? 2 : 1.5} />
+              <Icon size={20} strokeWidth={isActive ? 2 : 1.8} />
               <span className={`${isActive ? 'font-medium' : 'font-normal'}`}>{item.label}</span>
             </button>
+
+
+            </div>
+
+            
           );
         })}
       </nav>
 
-      {/* Logout Button */}
-      <div className="mt-auto pt-6 space-y-4">
+             <div className="mt-auto pt-6 space-y-4">
         <button
           onClick={handleLogout}
           disabled={loggingOut}
@@ -78,7 +83,7 @@ export default function Sidebar() {
         </button>
 
         <div className="text-xs text-gray-500">
-          <p>Version 1.0.0</p>
+          <p></p>
         </div>
       </div>
     </aside>

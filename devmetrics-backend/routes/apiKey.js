@@ -10,7 +10,6 @@ import {
 import { validateAdminKey } from "../middleware/auth.js";
 
 const router = express.Router();
-
 // All API key management routes require admin authentication
 router.use(validateAdminKey);
 

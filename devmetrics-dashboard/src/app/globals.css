@@ -1,45 +1,70 @@
 @import "tailwindcss";
 
+/* ============================================================
+   DESIGN TOKENS
+   One place to control your entire visual system.
+   Change a value here → it updates everywhere.
+   
+   Think of these like variables in your code — same principle.
+   "DRY" (Don't Repeat Yourself) applies to design too.
+   ============================================================ */
+
 :root {
-  --background: #f9fafb;
-  --foreground: #111827;
+  /* Surface layers — the "elevation" system.
+     Each layer is slightly lighter, creating depth. */
+  --surface-page:      #f5f5f7;   /* page background  (layer 0) */
+  --surface-card:      #ffffff;   /* cards, panels    (layer 1) */
+  --surface-sidebar:   #fafafa;   /* sidebar          (layer 1, variant) */
+  --surface-hover:     #f8f8fa;   /* hover states     (subtle) */
+
+  /* Border — one consistent border color throughout */
+  --border:            #ebebed;   /* all card/panel borders */
+  --border-strong:     #d8d8de;   /* table headers, dividers */
+
+  /* Brand color — one primary accent, used sparingly */
+  --brand:             #5b5cf6;   /* indigo — change this to rebrand everything */
+  --brand-light:       #ede9fe;   /* brand tint for icon backgrounds */
+  --brand-text:        #4338ca;   /* brand text on light backgrounds */
+
+  /* Semantic colors — green/yellow/red for meaning */
+  --color-success:     #16a34a;
+  --color-success-bg:  #f0fdf4;
+  --color-warning:     #d97706;
+  --color-warning-bg:  #fffbeb;
+  --color-danger:      #dc2626;
+  --color-danger-bg:   #fef2f2;
+  --color-info:        #2563eb;
+  --color-info-bg:     #eff6ff;
+
+  /* Typography scale */
+  --text-xs:   0.75rem;   /* 12px — labels, badges */
+  --text-sm:   0.875rem;  /* 14px — body, table */
+  --text-base: 1rem;      /* 16px — card values, nav */
+  --text-lg:   1.125rem;  /* 18px — section headings */
+  --text-2xl:  1.5rem;    /* 24px — page heading */
+  --text-3xl:  1.875rem;  /* 30px — metric values */
+
+  /* Radius — consistent rounding */
+  --radius-sm:  6px;
+  --radius-md:  10px;
+  --radius-lg:  14px;
+  --radius-xl:  18px;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #f9fafb;
-    --foreground: #111827;
-  }
-}
+/* We intentionally keep the dark mode the same as light here
+   since this is a dashboard meant for daylight use. 
+   Add a dark mode later if needed — tokens make it easy. */
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
+  background: var(--surface-page);
+  color: #111827;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', sans-serif;
+  -webkit-font-smoothing: antialiased;
 }
 
-/* Custom scrollbar */
-::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
-}
-
-::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-::-webkit-scrollbar-thumb {
-  background: #d1d5db;
-  border-radius: 3px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: #9ca3af;
-}
+/* Refined scrollbar — thin, subtle */
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border-strong); border-radius: 99px; }
+::-webkit-scrollbar-thumb:hover { background: #b0b0bc; }

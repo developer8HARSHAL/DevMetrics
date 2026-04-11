@@ -2,7 +2,7 @@ import { RefreshCw } from 'lucide-react';
 
 export default function Navbar({ onRefresh, loading = false, title = "Dashboard Overview", subtitle }) {
   return (
-    <header className="bg-white border-b border-gray-100">
+    <header className="bg-gray-100 border-b border-gray-100">
       <div className="px-8 py-6 flex items-center justify-between">
         <div>
           <h2 className="text-2xl font-semibold text-gray-900">
