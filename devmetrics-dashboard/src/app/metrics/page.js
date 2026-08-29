@@ -10,27 +10,31 @@ import { formatNumber, formatResponseTime, formatPercentage } from '../utils/for
 
 import { AlertTriangle } from 'lucide-react';
 
-const COLORS = ['#60a5fa', '#4ade80', '#fbbf24', '#a78bfa', '#f87171', '#06b6d4', '#ec4899', '#14b8a6'];
+const COLORS = ['#5b5cf6', '#16a34a', '#d97706', '#818cf8', '#dc2626', '#06b6d4', '#ec4899', '#14b8a6'];
 
 const TOOLTIP_STYLE = {
   backgroundColor: '#ffffff',
-  border: '1px solid #f3f4f6',
+  border: '1px solid var(--border)',
   borderRadius: '12px',
   fontSize: '12px',
-  boxShadow: '0 4px 16px rgba(0,0,0,0.08)',
+  boxShadow: 'var(--shadow-md)',
+  fontFamily: 'var(--font-mono)',
 };
 
 // Colored pill for each HTTP method
 function MethodBadge({ method }) {
-  const colors = {
-    GET: 'bg-blue-50 text-blue-600',
-    POST: 'bg-emerald-50 text-emerald-600',
-    PUT: 'bg-amber-50 text-amber-600',
-    PATCH: 'bg-purple-50 text-purple-600',
-    DELETE: 'bg-rose-50 text-rose-600',
+  const styles = {
+    GET: { background: 'var(--color-info-bg)', color: 'var(--color-info)' },
+    POST: { background: 'var(--color-success-bg)', color: 'var(--color-success)' },
+    PUT: { background: 'var(--color-warning-bg)', color: 'var(--color-warning)' },
+    PATCH: { background: 'var(--brand-light)', color: 'var(--brand-text)' },
+    DELETE: { background: 'var(--color-danger-bg)', color: 'var(--color-danger)' },
   };
   return (
-    <span className={`inline-flex items-center px-2 py-0.5 rounded-md text-xs font-semibold ${colors[method] ?? 'bg-gray-100 text-gray-600'}`}>
+    <span
+      className="inline-flex items-center px-2 py-0.5 rounded-md text-xs font-semibold"
+      style={styles[method] ?? { background: 'var(--surface-sunken)', color: 'var(--ink-muted)' }}
+    >
       {method}
     </span>
   );
@@ -48,10 +52,10 @@ function RateBar({ value, positive }) {
 
   return (
     <div className="flex items-center gap-2">
-      <span className={`text-sm font-semibold tabular-nums ${textColor}`}>
+      <span className={`text-mono text-sm font-semibold ${textColor}`}>
         {formatPercentage(value)}
       </span>
-      <div className="w-14 h-1.5 bg-gray-100 rounded-full overflow-hidden">
+      <div className="w-14 h-1.5 rounded-full overflow-hidden" style={{ background: 'var(--surface-sunken)' }}>
         <div className={`h-full rounded-full ${barColor}`} style={{ width: `${Math.min(value, 100)}%` }} />
       </div>
     </div>
@@ -117,7 +121,7 @@ export default function MetricsPage() {
   const sortedByResponseTime = [...(data || [])].sort((a, b) => b.avgResponseTime - a.avgResponseTime).slice(0, 10);
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div>
       <Navbar
         onRefresh={loadData}
         loading={loading}
@@ -126,17 +130,19 @@ export default function MetricsPage() {
       />
 
       {error && (
-        <div className="flex items-center gap-3 bg-yellow-50 border border-yellow-200 rounded-2xl p-4 mx-8 mt-6">
-          <AlertTriangle className="text-yellow-600 shrink-0" size={20} />
-          <p className="text-sm text-yellow-800">{error}</p>
+        <div
+          className="flex items-center gap-3 rounded-2xl p-4 mx-8 mt-6 border"
+          style={{ background: 'var(--color-warning-bg)', borderColor: '#fde68a' }}
+        >
+          <AlertTriangle style={{ color: 'var(--color-warning)' }} className="shrink-0" size={20} />
+          <p className="text-sm" style={{ color: '#92400e' }}>{error}</p>
         </div>
       )}
 
       <div className="p-8 space-y-8">
 
-
         <section className="space-y-4">
-          <p className="text-xs font-semibold uppercase tracking-widest text-gray-400">Top Endpoints</p>
+          <p className="eyebrow">Top Endpoints</p>
 
           <div className="grid grid-cols-1 xl:grid-cols-2 gap-5">
 
@@ -174,7 +180,7 @@ export default function MetricsPage() {
                   <YAxis
                     type="category"
                     dataKey="endpoint"
-                    tick={{ fontSize: 10, fill: '#6b7280' }}
+                    tick={{ fontSize: 10, fill: '#6b7280', fontFamily: 'var(--font-mono)' }}
                     axisLine={false}
                     tickLine={false}
                     width={140}
@@ -219,7 +225,7 @@ export default function MetricsPage() {
                   <defs>
                     {sortedByResponseTime.map((_, i) => (
                       <linearGradient key={`sg-${i}`} id={`sg-${i}`} x1="0" y1="0" x2="1" y2="0">
-                        <stop offset="0%" stopColor="#fbbf24" stopOpacity={0.9} />
+                        <stop offset="0%" stopColor="#d97706" stopOpacity={0.9} />
                         <stop offset="100%" stopColor="#f97316" stopOpacity={0.5} />
                       </linearGradient>
                     ))}
@@ -239,7 +245,7 @@ export default function MetricsPage() {
                   <YAxis
                     type="category"
                     dataKey="endpoint"
-                    tick={{ fontSize: 10, fill: '#6b7280' }}
+                    tick={{ fontSize: 10, fill: '#6b7280', fontFamily: 'var(--font-mono)' }}
                     axisLine={false}
                     tickLine={false}
                     width={140}
@@ -276,52 +282,60 @@ export default function MetricsPage() {
 
         {/* ── All Endpoints table ── */}
         <section className="space-y-4">
-          <p className="text-xs font-semibold uppercase tracking-widest text-gray-400">All Endpoints</p>
+          <p className="eyebrow">All Endpoints</p>
 
-          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+          <div className="card-elevated overflow-hidden">
 
             {/* Card header */}
-            <div className="px-6 py-4 border-b border-gray-100">
-              <h3 className="text-sm font-semibold text-gray-900">Complete Statistics</h3>
-              <p className="text-xs text-gray-400 mt-0.5">Detailed per-endpoint breakdown</p>
+            <div className="px-6 py-4 border-b" style={{ borderColor: 'var(--border)' }}>
+              <h3 className="text-sm font-semibold" style={{ color: 'var(--ink-strong)' }}>Complete Statistics</h3>
+              <p className="text-xs mt-0.5" style={{ color: 'var(--ink-subtle)' }}>Detailed per-endpoint breakdown</p>
             </div>
 
             <div className="overflow-x-auto">
               <table className="w-full">
                 <thead>
-                  <tr className="bg-gray-50 border-b border-gray-100">
+                  <tr style={{ background: 'var(--surface-sunken)', borderBottom: '1px solid var(--border)' }}>
                     {['Endpoint', 'Requests', 'Avg Time', 'Min / Max', 'Success', 'Errors', 'Methods'].map((h) => (
-                      <th key={h} className="px-5 py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider whitespace-nowrap">
+                      <th key={h} className="eyebrow px-5 py-3 text-left whitespace-nowrap">
                         {h}
                       </th>
                     ))}
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-gray-50">
+                <tbody className="divide-y" style={{ borderColor: 'var(--border)' }}>
                   {(data || []).map((endpoint, index) => (
-                    <tr key={index} className="hover:bg-gray-50/60 transition-colors group">
+                    <tr
+                      key={index}
+                      className="transition-colors group"
+                      onMouseEnter={(e) => (e.currentTarget.style.background = 'var(--surface-hover)')}
+                      onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
+                    >
 
                       {/* Endpoint */}
                       <td className="px-5 py-3.5">
-                        <span className="text-xs font-mono text-gray-700 bg-gray-100 px-2 py-1 rounded-md group-hover:bg-gray-200 transition-colors">
+                        <span
+                          className="text-mono text-xs px-2 py-1 rounded-md"
+                          style={{ color: 'var(--ink)', background: 'var(--surface-sunken)' }}
+                        >
                           {endpoint.endpoint}
                         </span>
                       </td>
 
                       {/* Requests */}
-                      <td className="px-5 py-3.5 text-sm font-semibold text-gray-900 tabular-nums">
+                      <td className="text-mono px-5 py-3.5 text-sm font-semibold" style={{ color: 'var(--ink-strong)' }}>
                         {formatNumber(endpoint.totalRequests)}
                       </td>
 
                       {/* Avg response time */}
-                      <td className="px-5 py-3.5 text-sm text-gray-700 tabular-nums">
+                      <td className="text-mono px-5 py-3.5 text-sm" style={{ color: 'var(--ink)' }}>
                         {formatResponseTime(endpoint.avgResponseTime)}
                       </td>
 
                       {/* Min / Max */}
-                      <td className="px-5 py-3.5 text-xs text-gray-400 tabular-nums whitespace-nowrap">
+                      <td className="text-mono px-5 py-3.5 text-xs whitespace-nowrap" style={{ color: 'var(--ink-subtle)' }}>
                         {formatResponseTime(endpoint.minResponseTime)}
-                        <span className="mx-1 text-gray-300">/</span>
+                        <span className="mx-1">/</span>
                         {formatResponseTime(endpoint.maxResponseTime)}
                       </td>
 

@@ -46,12 +46,12 @@ export function AuthLayout({ children }) {
     try {
       const { data: { subscription: sub } } = supabase.auth.onAuthStateChange((_event, session) => {
         setSession(session);
-        
+
         // If user just logged in and on public route → go to dashboard
         if (session && isPublicRoute) {
           router.replace('/');
         }
-        
+
         // If user logged out and on protected route → go to login
         if (!session && !isPublicRoute) {
           router.replace('/login');
@@ -72,8 +72,14 @@ export function AuthLayout({ children }) {
   // Show loading only on initial load
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="text-gray-600">Loading...</div>
+      <div
+        className="min-h-screen flex items-center justify-center"
+        style={{ background: 'var(--surface-page)' }}
+      >
+        <div
+          className="w-6 h-6 rounded-full animate-spin"
+          style={{ border: '3px solid var(--border)', borderTopColor: 'var(--brand)' }}
+        />
       </div>
     );
   }
@@ -85,7 +91,7 @@ export function AuthLayout({ children }) {
 
   // Protected pages → sidebar
   return (
-    <div className="flex min-h-screen bg-gray-50">
+    <div className="flex min-h-screen" style={{ background: 'var(--surface-page)' }}>
       <Sidebar />
       <main className="flex-1 overflow-auto">
         {children}

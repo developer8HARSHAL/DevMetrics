@@ -15,7 +15,7 @@ export default function Sidebar() {
     { href: '/metrics', label: 'Metrics', icon: BarChart3 },
     { href: '/logs', label: 'Logs', icon: FileText },
     { href: '/errors', label: 'Errors', icon: AlertCircle },
-    { href: '/api-key', label: 'API Key', icon: Key }
+    { href: '/api-key', label: 'API Key', icon: Key },
   ];
 
   const handleLogout = async () => {
@@ -32,15 +32,21 @@ export default function Sidebar() {
   };
 
   return (
-    <aside className="w-64 bg-gray-200 min-h-screen flex flex-col p-6">
+    <aside
+      className="w-64 min-h-screen flex flex-col p-6 border-r"
+      style={{ background: 'var(--surface-sidebar)', borderColor: 'var(--border)' }}
+    >
       {/* Logo */}
-      <div className="mb-12">
-        <div className="flex items-center gap-3 mb-8">
-          <div className="w-10 h-10 bg-gray-900 rounded-lg flex items-center justify-center">
-            <Activity className="text-white" size={20} />
-          </div>
+      <div className="mb-10 flex items-center gap-3">
+        <div
+          className="w-9 h-9 rounded-lg flex items-center justify-center shrink-0"
+          style={{ background: 'var(--brand)' }}
+        >
+          <Activity className="text-white" size={18} strokeWidth={2} />
         </div>
-        <h1 className="text-2xl font-semibold text-gray-900 mb-1">DevMetrics</h1>
+        <h1 className="text-lg font-semibold" style={{ color: 'var(--ink-strong)' }}>
+          DevMetrics
+        </h1>
       </div>
 
       {/* Navigation */}
@@ -53,36 +59,42 @@ export default function Sidebar() {
             <button
               key={item.href}
               onClick={() => router.push(item.href)}
-              className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all text-left ${
+              className="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl transition-all text-left text-sm"
+              style={
                 isActive
-                  ? 'bg-white text-gray-900 shadow-sm'
-                  : 'text-gray-600 hover:text-gray-900 hover:bg-white/50'
-              }`}
+                  ? {
+                      background: 'var(--brand-light)',
+                      color: 'var(--brand-text)',
+                      fontWeight: 600,
+                    }
+                  : { color: 'var(--ink-muted)', fontWeight: 500 }
+              }
+              onMouseEnter={(e) => {
+                if (!isActive) e.currentTarget.style.background = 'var(--surface-hover)';
+              }}
+              onMouseLeave={(e) => {
+                if (!isActive) e.currentTarget.style.background = 'transparent';
+              }}
             >
-              <Icon size={20} strokeWidth={isActive ? 2 : 1.8} />
-              <span className={`${isActive ? 'font-medium' : 'font-normal'}`}>{item.label}</span>
+              <Icon size={18} strokeWidth={isActive ? 2.25 : 1.8} />
+              <span>{item.label}</span>
             </button>
-
-
-
-            
           );
         })}
       </nav>
 
-             <div className="mt-auto pt-6 space-y-4">
+      <div className="mt-auto pt-6 border-t" style={{ borderColor: 'var(--border)' }}>
         <button
           onClick={handleLogout}
           disabled={loggingOut}
-          className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-red-600 hover:bg-red-50 transition-all text-left disabled:opacity-50"
+          className="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-left text-sm font-medium transition-colors disabled:opacity-50 mt-4"
+          style={{ color: 'var(--color-danger)' }}
+          onMouseEnter={(e) => (e.currentTarget.style.background = 'var(--color-danger-bg)')}
+          onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
         >
-          <LogOut size={20} />
-          <span>{loggingOut ? 'Logging out...' : 'Logout'}</span>
+          <LogOut size={18} />
+          <span>{loggingOut ? 'Logging out…' : 'Logout'}</span>
         </button>
-
-        <div className="text-xs text-gray-500">
-          <p></p>
-        </div>
       </div>
     </aside>
   );
