@@ -9,7 +9,7 @@ export default function LogsTable({ logs, pagination, onPageChange }) {
       day: 'numeric',
       year: 'numeric',
       hour: '2-digit',
-      minute: '2-digit'
+      minute: '2-digit',
     });
   };
 
@@ -22,76 +22,68 @@ export default function LogsTable({ logs, pagination, onPageChange }) {
     return `${(num / 1000).toFixed(2)}s`;
   };
 
-  const getStatusBadgeColor = (status) => {
-    if (status < 200) return 'bg-blue-50 text-blue-700';
-    if (status < 300) return 'bg-green-50 text-green-700';
-    if (status < 400) return 'bg-amber-50 text-amber-700';
-    if (status < 500) return 'bg-orange-50 text-orange-700';
-    return 'bg-red-50 text-red-700';
+  const getStatusBadgeStyle = (status) => {
+    if (status < 200) return { background: 'var(--color-info-bg)', color: 'var(--color-info)' };
+    if (status < 300) return { background: 'var(--color-success-bg)', color: 'var(--color-success)' };
+    if (status < 400) return { background: 'var(--color-warning-bg)', color: 'var(--color-warning)' };
+    if (status < 500) return { background: '#fff7ed', color: '#c2410c' };
+    return { background: 'var(--color-danger-bg)', color: 'var(--color-danger)' };
   };
 
-  const getMethodColor = (method) => {
-    const colors = {
-      GET: 'bg-blue-50 text-blue-700',
-      POST: 'bg-green-50 text-green-700',
-      PUT: 'bg-amber-50 text-amber-700',
-      PATCH: 'bg-purple-50 text-purple-700',
-      DELETE: 'bg-red-50 text-red-700',
+  const getMethodStyle = (method) => {
+    const styles = {
+      GET: { background: 'var(--color-info-bg)', color: 'var(--color-info)' },
+      POST: { background: 'var(--color-success-bg)', color: 'var(--color-success)' },
+      PUT: { background: 'var(--color-warning-bg)', color: 'var(--color-warning)' },
+      PATCH: { background: 'var(--brand-light)', color: 'var(--brand-text)' },
+      DELETE: { background: 'var(--color-danger-bg)', color: 'var(--color-danger)' },
     };
-    return colors[method?.toUpperCase()] || 'bg-gray-50 text-gray-700';
+    return styles[method?.toUpperCase()] || { background: 'var(--surface-sunken)', color: 'var(--ink-muted)' };
   };
 
   if (!logs || logs.length === 0) {
     return (
-      <div className="bg-white rounded-2xl border border-gray-100 p-12 text-center">
-        <p className="text-gray-500">No logs found</p>
+      <div className="card p-12 text-center">
+        <p style={{ color: 'var(--ink-subtle)' }}>No logs found</p>
       </div>
     );
   }
 
   return (
-    <div className="bg-white rounded-2xl border border-gray-100">
+    <div className="card overflow-hidden">
       <div className="overflow-x-auto">
         <table className="w-full">
-          <thead className="bg-gray-50 border-b border-gray-100">
+          <thead style={{ background: 'var(--surface-sunken)', borderBottom: '1px solid var(--border)' }}>
             <tr>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wide">
-                Endpoint
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wide">
-                Method
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wide">
-                Status
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wide">
-                Response Time
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wide">
-                Timestamp
-              </th>
+              {['Endpoint', 'Method', 'Status', 'Response Time', 'Timestamp'].map((h) => (
+                <th key={h} className="eyebrow px-6 py-3 text-left whitespace-nowrap">
+                  {h}
+                </th>
+              ))}
             </tr>
           </thead>
-          <tbody className="divide-y divide-gray-100">
+          <tbody className="divide-y" style={{ borderColor: 'var(--border)' }}>
             {logs.map((log, index) => (
-              <tr key={log.id || index} className="hover:bg-gray-50 transition-colors">
-                <td className="px-6 py-4 text-sm text-gray-900 font-mono">
+              <tr
+                key={log.id || index}
+                className="transition-colors"
+                style={{ borderColor: 'var(--border)' }}
+                onMouseEnter={(e) => (e.currentTarget.style.background = 'var(--surface-hover)')}
+                onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
+              >
+                <td className="text-mono px-6 py-4 text-sm" style={{ color: 'var(--ink-strong)' }}>
                   {log.endpoint}
                 </td>
                 <td className="px-6 py-4">
-                  <span className={`inline-flex px-2.5 py-1 text-xs font-medium rounded-full ${getMethodColor(log.method)}`}>
-                    {log.method}
-                  </span>
+                  <span className="badge" style={getMethodStyle(log.method)}>{log.method}</span>
                 </td>
                 <td className="px-6 py-4">
-                  <span className={`inline-flex px-2.5 py-1 text-xs font-medium rounded-full ${getStatusBadgeColor(log.status)}`}>
-                    {log.status}
-                  </span>
+                  <span className="badge text-mono" style={getStatusBadgeStyle(log.status)}>{log.status}</span>
                 </td>
-                <td className="px-6 py-4 text-sm text-gray-900 font-medium">
+                <td className="text-mono px-6 py-4 text-sm font-medium" style={{ color: 'var(--ink-strong)' }}>
                   {formatResponseTime(log.response_time)}
                 </td>
-                <td className="px-6 py-4 text-sm text-gray-500">
+                <td className="px-6 py-4 text-sm" style={{ color: 'var(--ink-subtle)' }}>
                   {formatDate(log.timestamp)}
                 </td>
               </tr>
@@ -101,27 +93,32 @@ export default function LogsTable({ logs, pagination, onPageChange }) {
       </div>
 
       {pagination && pagination.pages > 1 && (
-        <div className="px-6 py-4 border-t border-gray-100 flex items-center justify-between">
-          <div className="text-sm text-gray-600">
+        <div
+          className="px-6 py-4 flex items-center justify-between border-t"
+          style={{ borderColor: 'var(--border)' }}
+        >
+          <div className="text-sm" style={{ color: 'var(--ink-muted)' }}>
             Showing {((pagination.page - 1) * pagination.limit) + 1} to{' '}
             {Math.min(pagination.page * pagination.limit, pagination.total)} of{' '}
             {pagination.total} results
           </div>
-          <div className="flex gap-2">
+          <div className="flex items-center gap-2">
             <button
               onClick={() => onPageChange(pagination.page - 1)}
               disabled={pagination.page === 1}
-              className="px-3 py-1.5 border border-gray-200 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 transition-colors"
+              className="p-1.5 rounded-lg border disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+              style={{ borderColor: 'var(--border)' }}
             >
               <ChevronLeft size={16} />
             </button>
-            <span className="px-4 py-1.5 text-sm text-gray-700 font-medium">
-              Page {pagination.page} of {pagination.pages}
+            <span className="text-mono px-2 text-sm font-medium" style={{ color: 'var(--ink)' }}>
+              {pagination.page} / {pagination.pages}
             </span>
             <button
               onClick={() => onPageChange(pagination.page + 1)}
               disabled={pagination.page === pagination.pages}
-              className="px-3 py-1.5 border border-gray-200 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 transition-colors"
+              className="p-1.5 rounded-lg border disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+              style={{ borderColor: 'var(--border)' }}
             >
               <ChevronRight size={16} />
             </button>

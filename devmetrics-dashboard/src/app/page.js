@@ -10,12 +10,16 @@ import Navbar from './components/Navbar';
 import MetricCard from './components/MetricCard';
 import ChartCard from './components/ChartCard';
 import Loader from './components/Loader';
-import Sidebar from './components/Sidebar';
 import { fetchOverview, getApiKey, setApiKey, clearApiKey, getDemoData } from './lib/api';
 import { formatNumber, formatResponseTime, formatPercentage } from './utils/formatters';
 
-const STATUS_COLORS = ['#4ade80', '#60a5fa', '#fbbf24', '#f87171'];
-const METHOD_COLORS = ['#60a5fa', '#4ade80', '#fbbf24', '#a78bfa', '#f87171'];
+// Keyed by name, not array position — a 5xx status or a DELETE method must
+// always render as danger/red regardless of what order the API returns them in.
+const STATUS_COLOR_MAP = { '1xx': '#2563eb', '2xx': '#16a34a', '3xx': '#2563eb', '4xx': '#d97706', '5xx': '#dc2626' };
+const getStatusColor = (id) => STATUS_COLOR_MAP[id] || '#5b5cf6';
+
+const METHOD_COLOR_MAP = { GET: '#5b5cf6', POST: '#16a34a', PUT: '#d97706', PATCH: '#818cf8', DELETE: '#dc2626' };
+const getMethodColor = (method) => METHOD_COLOR_MAP[method?.toUpperCase()] || '#9ca3af';
 
 // Shared tooltip styles reused across all charts
 const TOOLTIP_STYLE = {
@@ -24,6 +28,7 @@ const TOOLTIP_STYLE = {
   borderRadius: '10px',
   fontSize: '12px',
   padding: '10px 14px',
+  fontFamily: 'var(--font-mono)',
 };
 const TOOLTIP_LABEL_STYLE = { color: '#9ca3af', marginBottom: '4px', fontSize: '11px' };
 const TOOLTIP_ITEM_STYLE = { color: '#e5e7eb' };
@@ -114,32 +119,32 @@ export default function Dashboard() {
   const errorRate = data ? (100 - parseFloat(data.successRate)).toFixed(2) : 0;
 
   return (
-    <div className="bg-white">
+    <div>
       <Navbar onRefresh={loadData} loading={loading} />
 
       <div className="p-8 space-y-6">
 
         {/* Demo / no-data banner */}
         {isDemo && (
-          <div className="flex items-start justify-between bg-blue-50 border border-blue-200 rounded-2xl p-6">
+          <div
+            className="flex items-start justify-between rounded-2xl p-6 border"
+            style={{ background: 'var(--color-info-bg)', borderColor: '#bfdbfe' }}
+          >
             <div className="flex items-start gap-4">
-              <div className="p-3 bg-blue-100 rounded-xl">
+              <div className="p-3 rounded-xl" style={{ background: '#dbeafe' }}>
                 <Key className="text-blue-600" size={24} />
               </div>
               <div>
-                <h3 className="text-lg font-semibold text-gray-900 mb-1">
-                  {currentApiKey ? 'No Data Yet - Start Tracking!' : 'Demo Dashboard'}
+                <h3 className="text-lg font-semibold mb-1" style={{ color: 'var(--ink-strong)' }}>
+                  {currentApiKey ? 'No Data Yet — Start Tracking!' : 'Demo Dashboard'}
                 </h3>
-                <p className="text-sm text-gray-600 mb-3">
+                <p className="text-sm mb-3" style={{ color: 'var(--ink-muted)' }}>
                   {currentApiKey
                     ? 'API key connected! Integrate the SDK in your app to see real data here.'
                     : "You're viewing demo data. Connect your API key to see real metrics."}
                 </p>
                 {!currentApiKey && (
-                  <button
-                    onClick={() => setShowApiKeyModal(true)}
-                    className="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors"
-                  >
+                  <button onClick={() => setShowApiKeyModal(true)} className="btn-brand">
                     Connect API Key
                   </button>
                 )}
@@ -149,7 +154,8 @@ export default function Dashboard() {
               <button
                 onClick={handleRemoveApiKey}
                 title="Remove API Key"
-                className="text-gray-400 hover:text-gray-600 transition-colors"
+                className="transition-colors"
+                style={{ color: 'var(--ink-subtle)' }}
               >
                 <X size={20} />
               </button>
@@ -159,16 +165,20 @@ export default function Dashboard() {
 
         {/* Connected banner */}
         {currentApiKey && !isDemo && (
-          <div className="flex items-center justify-between bg-green-50 border border-green-200 rounded-2xl p-4">
+          <div
+            className="flex items-center justify-between rounded-2xl p-4 border"
+            style={{ background: 'var(--color-success-bg)', borderColor: '#bbf7d0' }}
+          >
             <div className="flex items-center gap-3">
-              <CheckCircle className="text-green-600" size={20} />
-              <span className="text-sm font-medium text-green-800">
-                Connected • API Key: {currentApiKey.substring(0, 8)}...
+              <CheckCircle style={{ color: 'var(--color-success)' }} size={20} />
+              <span className="text-mono text-sm font-medium" style={{ color: '#166534' }}>
+                Connected • API Key: {currentApiKey.substring(0, 8)}…
               </span>
             </div>
             <button
               onClick={handleRemoveApiKey}
-              className="text-sm text-green-700 underline hover:text-green-900"
+              className="text-sm underline"
+              style={{ color: 'var(--color-success)' }}
             >
               Disconnect
             </button>
@@ -177,19 +187,23 @@ export default function Dashboard() {
 
         {/* Error banner */}
         {error && !isDemo && (
-          <div className="flex items-center gap-3 bg-yellow-50 border border-yellow-200 rounded-2xl p-4">
-            <AlertTriangle className="text-yellow-600 shrink-0" size={20} />
-            <p className="text-sm text-yellow-800">{error}</p>
+          <div
+            className="flex items-center gap-3 rounded-2xl p-4 border"
+            style={{ background: 'var(--color-warning-bg)', borderColor: '#fde68a' }}
+          >
+            <AlertTriangle style={{ color: 'var(--color-warning)' }} className="shrink-0" size={20} />
+            <p className="text-sm" style={{ color: '#92400e' }}>{error}</p>
           </div>
         )}
 
         {/* Overview header */}
         <div className="flex items-center justify-between">
-          <h3 className="text-lg font-semibold text-gray-900">Overview</h3>
+          <h3 className="text-lg font-semibold" style={{ color: 'var(--ink-strong)' }}>Overview</h3>
           {!currentApiKey && (
             <button
               onClick={() => setShowApiKeyModal(true)}
-              className="flex items-center gap-2 text-sm font-medium text-blue-600 hover:text-blue-700"
+              className="flex items-center gap-2 text-sm font-medium"
+              style={{ color: 'var(--brand)' }}
             >
               <Key size={16} />
               Add API Key
@@ -229,7 +243,7 @@ export default function Dashboard() {
         </div>
 
         {/* Analytics header */}
-        <h3 className="text-lg font-semibold text-gray-900">Request Analytics</h3>
+        <h3 className="text-lg font-semibold" style={{ color: 'var(--ink-strong)' }}>Request Analytics</h3>
 
         {/* Charts row 1 */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
@@ -243,13 +257,13 @@ export default function Dashboard() {
               >
                 <defs>
                   <linearGradient id="colorResponseTime" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="#fbbf24" stopOpacity={0.25} />
-                    <stop offset="60%" stopColor="#fbbf24" stopOpacity={0.08} />
-                    <stop offset="100%" stopColor="#fbbf24" stopOpacity={0} />
+                    <stop offset="0%" stopColor="#5b5cf6" stopOpacity={0.25} />
+                    <stop offset="60%" stopColor="#5b5cf6" stopOpacity={0.08} />
+                    <stop offset="100%" stopColor="#5b5cf6" stopOpacity={0} />
                   </linearGradient>
                 </defs>
 
-                <CartesianGrid strokeDasharray="4 4" stroke="rgba(255,255,255,0.04)" vertical={false} />
+                <CartesianGrid strokeDasharray="4 4" stroke="rgba(0,0,0,0.04)" vertical={false} />
 
                 <XAxis
                   dataKey="_id"
@@ -262,6 +276,7 @@ export default function Dashboard() {
                 <YAxis
                   yAxisId="right"
                   orientation="right"
+                  domain={['auto', 'auto']}
                   tick={{ fontSize: 11, fill: '#6b7280' }}
                   axisLine={false}
                   tickLine={false}
@@ -270,25 +285,30 @@ export default function Dashboard() {
                 />
 
                 <Tooltip
-                  cursor={{ stroke: '#fbbf24', strokeWidth: 1, strokeDasharray: '4 4', strokeOpacity: 0.5 }}
-                  contentStyle={{ ...TOOLTIP_STYLE, border: '1px solid rgba(251,191,36,0.2)' }}
+                  cursor={{ stroke: '#5b5cf6', strokeWidth: 1, strokeDasharray: '4 4', strokeOpacity: 0.5 }}
+                  contentStyle={{ ...TOOLTIP_STYLE, border: '1px solid rgba(91,92,246,0.25)' }}
                   labelStyle={TOOLTIP_LABEL_STYLE}
-                  itemStyle={{ color: '#fbbf24' }}
+                  itemStyle={{ color: '#a5a6fa' }}
                   formatter={(value) => [`${value} ms`, 'Avg Response']}
                 />
 
                 <Area
                   type="monotone"
                   dataKey="avgResponseTime"
-                  stroke="#fbbf24"
+                  stroke="#5b5cf6"
                   strokeWidth={2}
                   fill="url(#colorResponseTime)"
                   name="Avg Response (ms)"
                   yAxisId="right"
-                  dot={false}
-                  activeDot={{ r: 5, fill: '#fbbf24', stroke: '#111827', strokeWidth: 2 }}
+                  dot={(data?.requestsOverTime?.length ?? 0) <= 3
+                    ? { r: 5, fill: '#5b5cf6', stroke: '#fff', strokeWidth: 2 }
+                    : false
+                  }
+                  activeDot={{ r: 5, fill: '#5b5cf6', stroke: '#111827', strokeWidth: 2 }}
                   animationDuration={1200}
                   animationEasing="ease-out"
+                  isAnimationActive={true}
+                  connectNulls={true}
                 />
               </AreaChart>
             </ResponsiveContainer>
@@ -299,8 +319,8 @@ export default function Dashboard() {
             <ResponsiveContainer width="100%" height={280}>
               <PieChart>
                 <defs>
-                  {(data?.requestsByStatus || []).map((_, index) => {
-                    const color = STATUS_COLORS[index % STATUS_COLORS.length];
+                  {(data?.requestsByStatus || []).map((entry, index) => {
+                    const color = getStatusColor(entry._id);
                     return (
                       <radialGradient key={`radGrad-${index}`} id={`pieGrad-${index}`} cx="50%" cy="50%" r="50%">
                         <stop offset="0%" stopColor={color} stopOpacity={1} />
@@ -318,9 +338,10 @@ export default function Dashboard() {
                   outerRadius={96}
                   dataKey="count"
                   nameKey="_id"
-                  strokeWidth={2}
-                  stroke="#111827"
-                  paddingAngle={3}
+                  strokeWidth={data?.requestsByStatus?.length === 1 ? 0 : 2}
+                  stroke="#f3f4f6"
+                  paddingAngle={data?.requestsByStatus?.length > 1 ? 3 : 0}
+                  minAngle={8}
                   animationBegin={0}
                   animationDuration={900}
                   animationEasing="ease-out"
@@ -329,7 +350,7 @@ export default function Dashboard() {
                     const radius = outerRadius + 20;
                     const x = cx + radius * Math.cos(-midAngle * RADIAN);
                     const y = cy + radius * Math.sin(-midAngle * RADIAN);
-                    return percent > 0.04 ? (
+                    return percent > 0.03 ? (
                       <text
                         x={x}
                         y={y}
@@ -338,6 +359,7 @@ export default function Dashboard() {
                         dominantBaseline="central"
                         fontSize={11}
                         fontWeight={600}
+                        fontFamily="var(--font-mono)"
                       >
                         {_id}
                       </text>
@@ -355,11 +377,10 @@ export default function Dashboard() {
                   const total = (data?.requestsByStatus || []).reduce((s, d) => s + d.count, 0);
                   return (
                     <text x="50%" y="50%" textAnchor="middle" dominantBaseline="middle">
-                      <tspan x="50%" dy="-8" fontSize="22" fontWeight="700" fill="black">
+                      <tspan x="50%" dy="-8" fontSize="22" fontWeight="700" fill="#111827" fontFamily="var(--font-mono)">
                         {total >= 1000 ? `${(total / 1000).toFixed(1)}k` : total}
                       </tspan>
-                      <tspan x="50%" dy="20" fontSize="11" fill="#6b7280" 
-                      >
+                      <tspan x="50%" dy="20" fontSize="11" fill="#6b7280">
                         total reqs
                       </tspan>
                     </text>
@@ -379,92 +400,92 @@ export default function Dashboard() {
         </div>
 
         {/* Charts row 2 — HTTP methods */}
-       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-1">
- <ChartCard title="HTTP Methods" subtitle="Request distribution">
-  <ResponsiveContainer width="100%" height={240}>
-    <BarChart
-      data={data?.requestsByMethod || []}
-      layout="vertical"
-      margin={{ top: 4, right: 48, left: 0, bottom: 4 }}
-      barCategoryGap="25%"
-    >
-      <defs>
-        {(data?.requestsByMethod || []).map((_, index) => {
-          const color = METHOD_COLORS[index % METHOD_COLORS.length];
-          return (
-            <linearGradient key={`grad-${index}`} id={`barGrad-${index}`} x1="0" y1="0" x2="1" y2="0">
-              <stop offset="0%" stopColor={color} stopOpacity={0.95} />
-              <stop offset="100%" stopColor={color} stopOpacity={0.5} />
-            </linearGradient>
-          );
-        })}
-      </defs>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-1">
+          <ChartCard title="HTTP Methods" subtitle="Request distribution">
+            <ResponsiveContainer width="100%" height={240}>
+              <BarChart
+                data={data?.requestsByMethod || []}
+                layout="vertical"
+                margin={{ top: 4, right: 48, left: 0, bottom: 4 }}
+                barCategoryGap="25%"
+              >
+                <defs>
+                  {(data?.requestsByMethod || []).map((entry, index) => {
+                    const color = getMethodColor(entry._id);
+                    return (
+                      <linearGradient key={`grad-${index}`} id={`barGrad-${index}`} x1="0" y1="0" x2="1" y2="0">
+                        <stop offset="0%" stopColor={color} stopOpacity={0.95} />
+                        <stop offset="100%" stopColor={color} stopOpacity={0.5} />
+                      </linearGradient>
+                    );
+                  })}
+                </defs>
 
-      <XAxis
-        type="number"
-        domain={[0, 'dataMax']}
-        tick={{ fontSize: 11, fill: '#6b7280' }}
-        axisLine={false}
-        tickLine={false}
-        tickFormatter={(v) => (v >= 1000 ? `${(v / 1000).toFixed(1)}k` : v)}
-      />
+                <XAxis
+                  type="number"
+                  domain={[0, 'dataMax']}
+                  tick={{ fontSize: 11, fill: '#6b7280' }}
+                  axisLine={false}
+                  tickLine={false}
+                  tickFormatter={(v) => (v >= 1000 ? `${(v / 1000).toFixed(1)}k` : v)}
+                />
 
-      <YAxis
-        type="category"
-        dataKey="_id"
-        tick={{ fontSize: 12, fill: '#374151', fontWeight: 600 }}
-        axisLine={false}
-        tickLine={false}
-        width={48}
-      />
+                <YAxis
+                  type="category"
+                  dataKey="_id"
+                  tick={{ fontSize: 12, fill: '#374151', fontWeight: 600, fontFamily: 'var(--font-mono)' }}
+                  axisLine={false}
+                  tickLine={false}
+                  width={48}
+                />
 
-      <Tooltip
-        cursor={{ fill: 'rgba(0,0,0,0.04)', radius: 6 }}
-        contentStyle={TOOLTIP_STYLE}
-        labelStyle={TOOLTIP_LABEL_STYLE}
-        itemStyle={TOOLTIP_ITEM_STYLE}
-        formatter={(value) => [value.toLocaleString(), 'Requests']}
-      />
+                <Tooltip
+                  cursor={{ fill: 'rgba(0,0,0,0.04)', radius: 6 }}
+                  contentStyle={TOOLTIP_STYLE}
+                  labelStyle={TOOLTIP_LABEL_STYLE}
+                  itemStyle={TOOLTIP_ITEM_STYLE}
+                  formatter={(value) => [value.toLocaleString(), 'Requests']}
+                />
 
-      <Bar
-        dataKey="count"
-        radius={[0, 6, 6, 0]}
-        animationDuration={900}
-        animationEasing="ease-out"
-        label={{
-          position: 'right',
-          fontSize: 11,
-          fontWeight: 600,
-          fill: '#6b7280',
-          formatter: (v) => v.toLocaleString(),
-        }}
-      >
-        {(data?.requestsByMethod || []).map((_, index) => (
-          <Cell key={`cell-${index}`} fill={`url(#barGrad-${index})`} />
-        ))}
-      </Bar>
-    </BarChart>
-  </ResponsiveContainer>
-</ChartCard>
-</div>
+                <Bar
+                  dataKey="count"
+                  radius={[0, 6, 6, 0]}
+                  animationDuration={900}
+                  animationEasing="ease-out"
+                  label={{
+                    position: 'right',
+                    fontSize: 11,
+                    fontWeight: 600,
+                    fill: '#6b7280',
+                    formatter: (v) => v.toLocaleString(),
+                  }}
+                >
+                  {(data?.requestsByMethod || []).map((_, index) => (
+                    <Cell key={`cell-${index}`} fill={`url(#barGrad-${index})`} />
+                  ))}
+                </Bar>
+              </BarChart>
+            </ResponsiveContainer>
+          </ChartCard>
+        </div>
       </div>
 
       {/* API Key modal */}
       {showApiKeyModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-          <div className="w-full max-w-md rounded-2xl bg-white p-6">
+          <div className="w-full max-w-md card-elevated p-6">
 
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-semibold text-gray-900">Connect API Key</h3>
+              <h3 className="text-lg font-semibold" style={{ color: 'var(--ink-strong)' }}>Connect API Key</h3>
               <button
                 onClick={() => { setShowApiKeyModal(false); setApiKeyInput(''); }}
-                className="text-gray-400 hover:text-gray-600 transition-colors"
+                style={{ color: 'var(--ink-subtle)' }}
               >
                 <X size={20} />
               </button>
             </div>
 
-            <p className="mb-4 text-sm text-gray-600">
+            <p className="mb-4 text-sm" style={{ color: 'var(--ink-muted)' }}>
               Enter your DevMetrics API key to see your application's real-time metrics.
             </p>
 
@@ -474,27 +495,29 @@ export default function Dashboard() {
               onChange={(e) => setApiKeyInput(e.target.value)}
               onKeyPress={(e) => e.key === 'Enter' && handleSaveApiKey()}
               placeholder="Enter your API key..."
-              className="mb-4 w-full rounded-xl border border-gray-200 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="text-mono mb-4 w-full rounded-xl border px-4 py-3 text-sm focus:outline-none"
+              style={{ borderColor: 'var(--border)' }}
             />
 
             <div className="flex gap-3">
               <button
                 onClick={() => { setShowApiKeyModal(false); setApiKeyInput(''); }}
-                className="flex-1 rounded-xl border border-gray-200 px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
+                className="flex-1 rounded-xl border px-4 py-2.5 text-sm font-medium transition-colors"
+                style={{ borderColor: 'var(--border)', color: 'var(--ink)' }}
               >
                 Cancel
               </button>
               <button
                 onClick={handleSaveApiKey}
                 disabled={!apiKeyInput.trim()}
-                className="flex-1 rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-blue-700 transition-colors disabled:cursor-not-allowed disabled:opacity-50"
+                className="flex-1 btn-brand justify-center"
               >
                 Connect
               </button>
             </div>
 
-            <div className="mt-4 rounded-lg bg-gray-50 p-3">
-              <p className="text-xs text-gray-600">
+            <div className="mt-4 rounded-lg p-3" style={{ background: 'var(--surface-sunken)' }}>
+              <p className="text-xs" style={{ color: 'var(--ink-muted)' }}>
                 <strong>Don't have an API key?</strong><br />
                 Contact your DevMetrics admin to generate one.
               </p>

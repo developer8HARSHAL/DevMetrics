@@ -11,13 +11,13 @@ import { fetchErrors } from '../lib/api';
 import { formatNumber } from '../utils/formatters';
 
 const ERROR_COLORS = {
-  '400': '#fbbf24',
-  '401': '#f87171',
-  '403': '#dc2626',
-  '404': '#818cf8',
-  '500': '#b91c1c',
-  '502': '#991b1b',
-  '503': '#7f1d1d'
+  '400': '#d97706',
+  '401': '#dc2626',
+  '403': '#b91c1c',
+  '404': '#5b5cf6',
+  '500': '#991b1b',
+  '502': '#7f1d1d',
+  '503': '#7f1d1d',
 };
 
 export default function ErrorsPage() {
@@ -61,8 +61,11 @@ export default function ErrorsPage() {
       <div>
         <Navbar onRefresh={() => loadData(currentPage)} loading={loading} title="Error Tracking" />
         <div className="p-8">
-          <div className="bg-red-50 border border-red-100 rounded-2xl p-8 text-center">
-            <p className="text-red-700 text-sm">{error}</p>
+          <div
+            className="rounded-2xl p-8 text-center border"
+            style={{ background: 'var(--color-danger-bg)', borderColor: '#fecaca' }}
+          >
+            <p className="text-sm" style={{ color: 'var(--color-danger)' }}>{error}</p>
           </div>
         </div>
       </div>
@@ -75,51 +78,51 @@ export default function ErrorsPage() {
   return (
     <div>
       <Navbar onRefresh={() => loadData(currentPage)} loading={loading} title="Error Tracking" subtitle="Monitor and analyze failed requests" />
-      
+
       <div className="p-8 space-y-6">
         {/* Overview */}
         <div>
-          <h3 className="text-lg font-semibold text-gray-900">Overview</h3>
+          <h3 className="text-lg font-semibold" style={{ color: 'var(--ink-strong)' }}>Overview</h3>
         </div>
 
         {/* Error Summary Stats */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-          <div className="bg-white rounded-2xl p-6 border border-gray-100">
+          <div className="card p-6">
             <div className="flex items-start gap-4">
-              <div className="p-3 bg-red-50 rounded-xl">
-                <AlertTriangle className="text-red-600" size={24} strokeWidth={1.5} />
+              <div className="p-3 rounded-xl" style={{ background: 'var(--color-danger-bg)' }}>
+                <AlertTriangle style={{ color: 'var(--color-danger)' }} size={24} strokeWidth={1.5} />
               </div>
               <div>
-                <p className="text-sm text-gray-600 mb-1">Total Errors</p>
-                <p className="text-3xl font-semibold text-gray-900">
+                <p className="text-sm mb-1" style={{ color: 'var(--ink-muted)' }}>Total Errors</p>
+                <p className="text-mono text-3xl font-semibold" style={{ color: 'var(--ink-strong)' }}>
                   {formatNumber(errorSummary.reduce((sum, item) => sum + item.count, 0))}
                 </p>
               </div>
             </div>
           </div>
 
-          <div className="bg-white rounded-2xl p-6 border border-gray-100">
+          <div className="card p-6">
             <div className="flex items-start gap-4">
-              <div className="p-3 bg-amber-50 rounded-xl">
-                <AlertTriangle className="text-amber-600" size={24} strokeWidth={1.5} />
+              <div className="p-3 rounded-xl" style={{ background: 'var(--color-warning-bg)' }}>
+                <AlertTriangle style={{ color: 'var(--color-warning)' }} size={24} strokeWidth={1.5} />
               </div>
               <div>
-                <p className="text-sm text-gray-600 mb-1">Unique Status Codes</p>
-                <p className="text-3xl font-semibold text-gray-900">
+                <p className="text-sm mb-1" style={{ color: 'var(--ink-muted)' }}>Unique Status Codes</p>
+                <p className="text-mono text-3xl font-semibold" style={{ color: 'var(--ink-strong)' }}>
                   {errorSummary.length}
                 </p>
               </div>
             </div>
           </div>
 
-          <div className="bg-white rounded-2xl p-6 border border-gray-100">
+          <div className="card p-6">
             <div className="flex items-start gap-4">
-              <div className="p-3 bg-orange-50 rounded-xl">
-                <AlertTriangle className="text-orange-600" size={24} strokeWidth={1.5} />
+              <div className="p-3 rounded-xl" style={{ background: '#fff7ed' }}>
+                <AlertTriangle style={{ color: '#c2410c' }} size={24} strokeWidth={1.5} />
               </div>
               <div>
-                <p className="text-sm text-gray-600 mb-1">Affected Endpoints</p>
-                <p className="text-3xl font-semibold text-gray-900">
+                <p className="text-sm mb-1" style={{ color: 'var(--ink-muted)' }}>Affected Endpoints</p>
+                <p className="text-mono text-3xl font-semibold" style={{ color: 'var(--ink-strong)' }}>
                   {new Set(errorSummary.flatMap(item => item.endpoints)).size}
                 </p>
               </div>
@@ -129,7 +132,7 @@ export default function ErrorsPage() {
 
         {/* Error Analytics */}
         <div>
-          <h3 className="text-lg font-semibold text-gray-900">Error Analytics</h3>
+          <h3 className="text-lg font-semibold" style={{ color: 'var(--ink-strong)' }}>Error Analytics</h3>
         </div>
 
         {/* Error Distribution Chart */}
@@ -139,10 +142,10 @@ export default function ErrorsPage() {
         >
           <ResponsiveContainer width="100%" height={300}>
             <BarChart data={errorSummary}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#f3f4f6" vertical={false} />
+              <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" vertical={false} />
               <XAxis
                 dataKey="_id"
-                tick={{ fontSize: 12, fill: '#9ca3af' }}
+                tick={{ fontSize: 12, fill: '#9ca3af', fontFamily: 'var(--font-mono)' }}
                 axisLine={false}
                 tickLine={false}
               />
@@ -150,9 +153,10 @@ export default function ErrorsPage() {
               <Tooltip
                 contentStyle={{
                   backgroundColor: '#ffffff',
-                  border: '1px solid #f3f4f6',
+                  border: '1px solid var(--border)',
                   borderRadius: '12px',
-                  fontSize: '12px'
+                  fontSize: '12px',
+                  fontFamily: 'var(--font-mono)',
                 }}
                 formatter={(value) => formatNumber(value)}
               />
@@ -160,7 +164,7 @@ export default function ErrorsPage() {
                 {errorSummary.map((entry, index) => (
                   <Cell
                     key={`cell-${index}`}
-                    fill={ERROR_COLORS[entry._id] || '#f87171'}
+                    fill={ERROR_COLORS[entry._id] || '#dc2626'}
                   />
                 ))}
               </Bar>
@@ -170,7 +174,7 @@ export default function ErrorsPage() {
 
         {/* Recent Errors */}
         <div>
-          <h3 className="text-lg font-semibold text-gray-900">Recent Failed Requests</h3>
+          <h3 className="text-lg font-semibold" style={{ color: 'var(--ink-strong)' }}>Recent Failed Requests</h3>
         </div>
 
         <LogsTable
