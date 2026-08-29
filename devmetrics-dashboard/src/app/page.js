@@ -236,62 +236,68 @@ export default function Dashboard() {
 
           {/* Response time area chart */}
           <ChartCard title="Requests" subtitle="Hourly volume">
-            <ResponsiveContainer width="100%" height={220}>
-              <AreaChart
-                data={data?.requestsOverTime || []}
-                margin={{ top: 10, right: 10, left: 0, bottom: 0 }}
-              >
-                <defs>
-                  <linearGradient id="colorResponseTime" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="#fbbf24" stopOpacity={0.25} />
-                    <stop offset="60%" stopColor="#fbbf24" stopOpacity={0.08} />
-                    <stop offset="100%" stopColor="#fbbf24" stopOpacity={0} />
-                  </linearGradient>
-                </defs>
+<ResponsiveContainer width="100%" height={220}>
+  <AreaChart
+    data={data?.requestsOverTime || []}
+    margin={{ top: 10, right: 10, left: 0, bottom: 0 }}
+  >
+    <defs>
+      <linearGradient id="colorResponseTime" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stopColor="#fbbf24" stopOpacity={0.25} />
+        <stop offset="60%" stopColor="#fbbf24" stopOpacity={0.08} />
+        <stop offset="100%" stopColor="#fbbf24" stopOpacity={0} />
+      </linearGradient>
+    </defs>
 
-                <CartesianGrid strokeDasharray="4 4" stroke="rgba(255,255,255,0.04)" vertical={false} />
+    <CartesianGrid strokeDasharray="4 4" stroke="rgba(0,0,0,0.04)" vertical={false} />
 
-                <XAxis
-                  dataKey="_id"
-                  tick={{ fontSize: 11, fill: '#6b7280' }}
-                  axisLine={false}
-                  tickLine={false}
-                  dy={6}
-                />
+    <XAxis
+      dataKey="_id"
+      tick={{ fontSize: 11, fill: '#6b7280' }}
+      axisLine={false}
+      tickLine={false}
+      dy={6}
+    />
 
-                <YAxis
-                  yAxisId="right"
-                  orientation="right"
-                  tick={{ fontSize: 11, fill: '#6b7280' }}
-                  axisLine={false}
-                  tickLine={false}
-                  dx={4}
-                  tickFormatter={(v) => `${v}ms`}
-                />
+    <YAxis
+      yAxisId="right"
+      orientation="right"
+      domain={['auto', 'auto']}         
+      tick={{ fontSize: 11, fill: '#6b7280' }}
+      axisLine={false}
+      tickLine={false}
+      dx={4}
+      tickFormatter={(v) => `${v}ms`}
+    />
 
-                <Tooltip
-                  cursor={{ stroke: '#fbbf24', strokeWidth: 1, strokeDasharray: '4 4', strokeOpacity: 0.5 }}
-                  contentStyle={{ ...TOOLTIP_STYLE, border: '1px solid rgba(251,191,36,0.2)' }}
-                  labelStyle={TOOLTIP_LABEL_STYLE}
-                  itemStyle={{ color: '#fbbf24' }}
-                  formatter={(value) => [`${value} ms`, 'Avg Response']}
-                />
+    <Tooltip
+      cursor={{ stroke: '#fbbf24', strokeWidth: 1, strokeDasharray: '4 4', strokeOpacity: 0.5 }}
+      contentStyle={{ ...TOOLTIP_STYLE, border: '1px solid rgba(251,191,36,0.2)' }}
+      labelStyle={TOOLTIP_LABEL_STYLE}
+      itemStyle={{ color: '#fbbf24' }}
+      formatter={(value) => [`${value} ms`, 'Avg Response']}
+    />
 
-                <Area
-                  type="monotone"
-                  dataKey="avgResponseTime"
-                  stroke="#fbbf24"
-                  strokeWidth={2}
-                  fill="url(#colorResponseTime)"
-                  name="Avg Response (ms)"
-                  yAxisId="right"
-                  dot={false}
-                  activeDot={{ r: 5, fill: '#fbbf24', stroke: '#111827', strokeWidth: 2 }}
-                  animationDuration={1200}
-                  animationEasing="ease-out"
-                />
-              </AreaChart>
-            </ResponsiveContainer>
+    <Area
+      type="monotone"
+      dataKey="avgResponseTime"
+      stroke="#fbbf24"
+      strokeWidth={2}
+      fill="url(#colorResponseTime)"
+      name="Avg Response (ms)"
+      yAxisId="right"
+      dot={(data?.requestsOverTime?.length ?? 0) <= 3
+        ? { r: 5, fill: '#fbbf24', stroke: '#fff', strokeWidth: 2 }
+        : false
+      }                               
+      activeDot={{ r: 5, fill: '#fbbf24', stroke: '#111827', strokeWidth: 2 }}
+      animationDuration={1200}
+      animationEasing="ease-out"
+      isAnimationActive={true}
+      connectNulls={true}             
+    />
+  </AreaChart>
+</ResponsiveContainer>
           </ChartCard>
 
           {/* Status codes donut */}
@@ -310,41 +316,42 @@ export default function Dashboard() {
                   })}
                 </defs>
 
-                <Pie
-                  data={data?.requestsByStatus || []}
-                  cx="50%"
-                  cy="50%"
-                  innerRadius={58}
-                  outerRadius={96}
-                  dataKey="count"
-                  nameKey="_id"
-                  strokeWidth={2}
-                  stroke="#111827"
-                  paddingAngle={3}
-                  animationBegin={0}
-                  animationDuration={900}
-                  animationEasing="ease-out"
-                  label={({ cx, cy, midAngle, outerRadius, percent, _id }) => {
-                    const RADIAN = Math.PI / 180;
-                    const radius = outerRadius + 20;
-                    const x = cx + radius * Math.cos(-midAngle * RADIAN);
-                    const y = cy + radius * Math.sin(-midAngle * RADIAN);
-                    return percent > 0.04 ? (
-                      <text
-                        x={x}
-                        y={y}
-                        fill="#9ca3af"
-                        textAnchor={x > cx ? 'start' : 'end'}
-                        dominantBaseline="central"
-                        fontSize={11}
-                        fontWeight={600}
-                      >
-                        {_id}
-                      </text>
-                    ) : null;
-                  }}
-                  labelLine={false}
-                >
+               <Pie
+  data={data?.requestsByStatus || []}
+  cx="50%"
+  cy="50%"
+  innerRadius={58}
+  outerRadius={96}
+  dataKey="count"
+  nameKey="_id"
+  strokeWidth={data?.requestsByStatus?.length === 1 ? 0 : 2}  
+  stroke="#f3f4f6"             
+  paddingAngle={data?.requestsByStatus?.length > 1 ? 3 : 0}   
+  minAngle={8}                 
+  animationBegin={0}
+  animationDuration={900}
+  animationEasing="ease-out"
+  label={({ cx, cy, midAngle, outerRadius, percent, _id }) => {
+    const RADIAN = Math.PI / 180;
+    const radius = outerRadius + 20;
+    const x = cx + radius * Math.cos(-midAngle * RADIAN);
+    const y = cy + radius * Math.sin(-midAngle * RADIAN);
+    return percent > 0.03 ? ( 
+      <text
+        x={x}
+        y={y}
+        fill="#9ca3af"
+        textAnchor={x > cx ? 'start' : 'end'}
+        dominantBaseline="central"
+        fontSize={11}
+        fontWeight={600}
+      >
+        {_id}
+      </text>
+    ) : null;
+  }}
+  labelLine={false}
+>
                   {(data?.requestsByStatus || []).map((_, index) => (
                     <Cell key={`cell-${index}`} fill={`url(#pieGrad-${index})`} />
                   ))}
