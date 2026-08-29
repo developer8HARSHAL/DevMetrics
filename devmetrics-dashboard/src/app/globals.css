@@ -4,29 +4,27 @@
    DESIGN TOKENS
    One place to control your entire visual system.
    Change a value here → it updates everywhere.
-   
-   Think of these like variables in your code — same principle.
-   "DRY" (Don't Repeat Yourself) applies to design too.
    ============================================================ */
 
 :root {
-  /* Surface layers — the "elevation" system.
-     Each layer is slightly lighter, creating depth. */
-  --surface-page:      #f5f5f7;   /* page background  (layer 0) */
+  /* Surface layers — the "elevation" system. */
+  --surface-page:      #f7f7f9;   /* page background  (layer 0) */
   --surface-card:      #ffffff;   /* cards, panels    (layer 1) */
   --surface-sidebar:   #fafafa;   /* sidebar          (layer 1, variant) */
-  --surface-hover:     #f8f8fa;   /* hover states     (subtle) */
+  --surface-hover:     #f4f4f6;   /* hover states     (subtle) */
+  --surface-sunken:    #f0f0f3;   /* table headers, code chips */
 
-  /* Border — one consistent border color throughout */
-  --border:            #ebebed;   /* all card/panel borders */
-  --border-strong:     #d8d8de;   /* table headers, dividers */
+  /* Border */
+  --border:            #eaeaed;
+  --border-strong:     #d8d8de;
 
-  /* Brand color — one primary accent, used sparingly */
-  --brand:             #5b5cf6;   /* indigo — change this to rebrand everything */
-  --brand-light:       #ede9fe;   /* brand tint for icon backgrounds */
-  --brand-text:        #4338ca;   /* brand text on light backgrounds */
+  /* Brand — one primary accent, used sparingly and on purpose */
+  --brand:             #5b5cf6;
+  --brand-hover:       #4c4de0;
+  --brand-light:       #ede9fe;
+  --brand-text:        #4338ca;
 
-  /* Semantic colors — green/yellow/red for meaning */
+  /* Semantic colors */
   --color-success:     #16a34a;
   --color-success-bg:  #f0fdf4;
   --color-warning:     #d97706;
@@ -36,31 +34,111 @@
   --color-info:        #2563eb;
   --color-info-bg:     #eff6ff;
 
-  /* Typography scale */
-  --text-xs:   0.75rem;   /* 12px — labels, badges */
-  --text-sm:   0.875rem;  /* 14px — body, table */
-  --text-base: 1rem;      /* 16px — card values, nav */
-  --text-lg:   1.125rem;  /* 18px — section headings */
-  --text-2xl:  1.5rem;    /* 24px — page heading */
-  --text-3xl:  1.875rem;  /* 30px — metric values */
+  /* Ink */
+  --ink-strong:  #111827;
+  --ink:         #374151;
+  --ink-muted:   #6b7280;
+  --ink-subtle:  #9ca3af;
 
-  /* Radius — consistent rounding */
+  /* Typography */
+  --font-display: var(--font-jakarta), -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-mono:    var(--font-plex-mono), ui-monospace, 'SF Mono', Menlo, monospace;
+
+  --text-xs:   0.75rem;
+  --text-sm:   0.875rem;
+  --text-base: 1rem;
+  --text-lg:   1.125rem;
+  --text-2xl:  1.5rem;
+  --text-3xl:  1.875rem;
+
+  /* Radius */
   --radius-sm:  6px;
   --radius-md:  10px;
   --radius-lg:  14px;
   --radius-xl:  18px;
-}
 
-/* We intentionally keep the dark mode the same as light here
-   since this is a dashboard meant for daylight use. 
-   Add a dark mode later if needed — tokens make it easy. */
+  /* Shadow — used deliberately, not on every card */
+  --shadow-sm: 0 1px 2px rgba(17, 24, 39, 0.04);
+  --shadow-md: 0 4px 16px rgba(17, 24, 39, 0.06);
+}
 
 body {
   background: var(--surface-page);
-  color: #111827;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-    'Ubuntu', 'Cantarell', sans-serif;
+  color: var(--ink-strong);
+  font-family: var(--font-display);
   -webkit-font-smoothing: antialiased;
+}
+
+/* ============================================================
+   SHARED UTILITY CLASSES
+   Every card/badge/button in the app should use these instead
+   of re-deciding its own gray. Add a new variant here, not
+   inline in a component.
+   ============================================================ */
+
+.card {
+  background: var(--surface-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+}
+
+.card-elevated {
+  background: var(--surface-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
+}
+
+.text-mono {
+  font-family: var(--font-mono);
+  font-feature-settings: "tnum" 1;
+}
+
+.eyebrow {
+  font-size: var(--text-xs);
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-subtle);
+}
+
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: var(--ink-strong);
+  color: #fff;
+  font-size: var(--text-sm);
+  font-weight: 500;
+  padding: 0.5rem 1rem;
+  border-radius: var(--radius-md);
+  transition: background-color 150ms ease;
+}
+.btn-primary:hover { background: #1f2937; }
+.btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.btn-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: var(--brand);
+  color: #fff;
+  font-size: var(--text-sm);
+  font-weight: 500;
+  padding: 0.5rem 1rem;
+  border-radius: var(--radius-md);
+  transition: background-color 150ms ease;
+}
+.btn-brand:hover { background: var(--brand-hover); }
+.btn-brand:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.15rem 0.6rem;
+  font-size: var(--text-xs);
+  font-weight: 500;
+  border-radius: 999px;
 }
 
 /* Refined scrollbar — thin, subtle */
@@ -68,3 +146,9 @@ body {
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: var(--border-strong); border-radius: 99px; }
 ::-webkit-scrollbar-thumb:hover { background: #b0b0bc; }
+
+/* Focus visibility — kept even in a "quiet" design */
+:focus-visible {
+  outline: 2px solid var(--brand);
+  outline-offset: 2px;
+}
