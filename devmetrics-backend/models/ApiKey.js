@@ -100,9 +100,19 @@ class ApiKey {
     return true;
   }
 
-  static async incrementUsage(key) {
-    const sql = `UPDATE api_keys SET usage_count = usage_count + 1, last_used_at = CURRENT_TIMESTAMP WHERE key = $1 RETURNING *`;
-    const result = await query(sql, [key]);
+  // Goal 2: extended with a `count` param so batch ingestion can increment
+  // usage once per batch instead of once per event. Existing single-event
+  // callers (trackController.handleTrack) are unaffected — count defaults to 1.
+  //
+  // Also accepts an optional transaction `client` (see config/db.js
+  // `transaction`) so batch ingestion can make "insert requests" + "bump
+  // usage_count" a single atomic unit — per review feedback, we don't want
+  // rows landing in `requests` with no corresponding usage accounting, or
+  // vice versa.
+  static async incrementUsage(key, count = 1, client = null) {
+    const runQuery = client ? client.query.bind(client) : query;
+    const sql = `UPDATE api_keys SET usage_count = usage_count + $2, last_used_at = CURRENT_TIMESTAMP WHERE key = $1 RETURNING *`;
+    const result = await runQuery(sql, [key, count]);
     return result.rows[0];
   }
 }
