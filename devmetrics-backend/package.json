@@ -9,6 +9,7 @@
     "dev": "nodemon app.js",
     "setup": "node scripts/setup.js",
     "seed": "node scripts/seedApiKey.js",
+    "migrate:sessions": "node scripts/addSessionTables.js",
     "dev:prod": "cross-env NODE_ENV=production nodemon app.js",
     "test": "node --env-file=.env scripts/testBackend.js",
     "test:connection": "node --env-file=.env scripts/testSupabaseConnection.js",
