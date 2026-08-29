@@ -36,3 +36,27 @@ pool.on("error", (err) => {
 
 export default pool;
 export const query = (q, p) => pool.query(q, p);
+
+/**
+ * Run a callback inside a BEGIN/COMMIT/ROLLBACK transaction on a dedicated
+ * client. New for Goal 2 (batch ingestion) — nothing existing used this
+ * before, so it's purely additive.
+ *
+ * const inserted = await transaction(async (client) => {
+ *   return Request.bulkCreate(rows, client);
+ * });
+ */
+export const transaction = async (callback) => {
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
+    const result = await callback(client);
+    await client.query('COMMIT');
+    return result;
+  } catch (err) {
+    await client.query('ROLLBACK');
+    throw err;
+  } finally {
+    client.release();
+  }
+};
