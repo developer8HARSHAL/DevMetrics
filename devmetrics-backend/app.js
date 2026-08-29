@@ -9,6 +9,7 @@ import trackRoutes from "./routes/track.js";
 import logsRoutes from "./routes/logs.js";
 import apiKeyRoutes from "./routes/apiKey.js";
 import authRoutes from "./routes/auth.js";
+import sessionRoutes from "./routes/sessions.js";
 
 
 
@@ -27,6 +28,7 @@ app.use("/auth", authRoutes);
 app.use("/track", trackRoutes);
 app.use("/logs", logsRoutes);
 app.use("/apikey", apiKeyRoutes);
+app.use("/sessions", sessionRoutes);
 
 app.get("/", (req, res) => {
   res.json({
@@ -40,7 +42,8 @@ app.get("/", (req, res) => {
         recent: "/logs/metrics/recent",
         errors: "/logs/metrics/errors"
       },
-      apiKeyManagement: "/apikey"
+      apiKeyManagement: "/apikey",
+      runs: "/sessions"
     }
   });
 });
@@ -95,12 +98,19 @@ async function startServer() {
       console.log(`  Environment: ${process.env.NODE_ENV || 'development'}`);
       console.log('\nEndpoints:');
       console.log('  POST /track');
+      console.log('  POST /track/batch');
       console.log('  GET  /logs/metrics/overview');
       console.log('  GET  /logs/metrics/endpoint');
       console.log('  GET  /logs/metrics/recent');
       console.log('  GET  /logs/metrics/errors');
       console.log('  POST /apikey');
       console.log('  GET  /apikey');
+      console.log('  POST /sessions');
+      console.log('  PATCH /sessions/:id/end');
+      console.log('  GET  /sessions');
+      console.log('  GET  /sessions/:id');
+      console.log('  GET  /sessions/compare');
+      console.log('  GET  /sessions/shared/:token');
       console.log('  GET  /health');
     });
   } catch (err) {

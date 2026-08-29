@@ -118,27 +118,43 @@ export const getSharedSession = async (req, res) => {
     const { token } = req.params;
 
     const session = await Session.findByShareToken(token);
+
     if (!session) {
-      return res.status(404).json({ success: false, message: "Shared run not found" });
+      return res.status(404).json({
+        success: false,
+        message: "Shared run not found"
+      });
     }
 
     const [timeline, findings] = await Promise.all([
-      Request.findBySessionId(session.id),
+      Request.findPublicBySessionId(session.id),
       RunFinding.findBySessionId(session.id)
     ]);
 
-    const { api_key, user_id, ...publicSession } = session;
+    const {
+      api_key,
+      user_id,
+      ...publicSession
+    } = session;
 
     res.json({
       success: true,
-      data: { session: publicSession, timeline, findings }
+      data: {
+        session: publicSession,
+        timeline,
+        findings
+      }
     });
   } catch (err) {
-    console.error('Shared session error:', err);
+    console.error("Shared session error:", err);
+
     res.status(500).json({
       success: false,
       message: "Failed to fetch shared run",
-      error: process.env.NODE_ENV === 'development' ? err.message : undefined
+      error:
+        process.env.NODE_ENV === "development"
+          ? err.message
+          : undefined
     });
   }
 };
