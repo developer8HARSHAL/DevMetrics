@@ -616,6 +616,159 @@ catch {
 }
 
 # ============================================================
+# 15. RUN LIST STATS (aggregation added for Goal 3)
+# ============================================================
+
+Section "15. Run List Stats"
+
+function Get-ExpectedStats($sessionId) {
+    $detail = Invoke-Api `
+        -Method "GET" `
+        -Url "$BASE_URL/sessions/$sessionId" `
+        -Headers @{ "x-api-key" = $API_KEY }
+
+    $timeline = @($detail.data.timeline)
+    $findings = @($detail.data.findings)
+
+    $severityRank = @{ critical = 0; warning = 1; info = 2 }
+    $highest = $null
+    if ($findings.Count -gt 0) {
+        $highest = ($findings | Sort-Object { $severityRank[$_.severity] })[0].severity
+    }
+
+    return @{
+        request_count = $timeline.Count
+        error_count   = @($timeline | Where-Object { $_.status -ge 400 }).Count
+        finding_count = $findings.Count
+        highest_severity = $highest
+        has_ended = $null -ne $detail.data.session.ended_at
+    }
+}
+
+function Assert-ListStatsMatch($sessionId, $label) {
+    try {
+        $expected = Get-ExpectedStats $sessionId
+
+        $runList = Invoke-Api `
+            -Method "GET" `
+            -Url "$BASE_URL/sessions" `
+            -Headers @{ "x-api-key" = $API_KEY }
+
+        $row = @($runList.data) | Where-Object { $_.id -eq $sessionId } | Select-Object -First 1
+
+        if (-not $row) {
+            Fail "$label - not found in GET /sessions list"
+            return
+        }
+
+        if ($row.request_count -eq $expected.request_count) {
+            Pass "$label - request_count matches ($($row.request_count))"
+        } else {
+            Fail "$label - request_count mismatch: list=$($row.request_count) expected=$($expected.request_count)"
+        }
+
+        if ($row.error_count -eq $expected.error_count) {
+            Pass "$label - error_count matches ($($row.error_count))"
+        } else {
+            Fail "$label - error_count mismatch: list=$($row.error_count) expected=$($expected.error_count)"
+        }
+
+        if ($row.finding_count -eq $expected.finding_count) {
+            Pass "$label - finding_count matches ($($row.finding_count))"
+        } else {
+            Fail "$label - finding_count mismatch: list=$($row.finding_count) expected=$($expected.finding_count)"
+        }
+
+        if ($row.highest_severity -eq $expected.highest_severity) {
+            Pass "$label - highest_severity matches ($($row.highest_severity))"
+        } else {
+            Fail "$label - highest_severity mismatch: list=$($row.highest_severity) expected=$($expected.highest_severity)"
+        }
+
+        if ($expected.has_ended) {
+            if ($row.duration_ms -is [double] -or $row.duration_ms -is [int]) {
+                if ($row.duration_ms -ge 0) {
+                    Pass "$label - duration_ms present and non-negative ($($row.duration_ms))"
+                } else {
+                    Fail "$label - duration_ms is negative"
+                }
+            } else {
+                Fail "$label - duration_ms missing or not numeric for ended run"
+            }
+        }
+    }
+    catch {
+        Fail "$label - stats check failed: $($_.Exception.Message)"
+    }
+}
+
+if ($sessionAId) { Assert-ListStatsMatch $sessionAId "Run A" }
+if ($sessionBId) { Assert-ListStatsMatch $sessionBId "Run B" }
+
+# Zero-request, zero-finding Run C
+$sessionCId = $null
+try {
+    $runC = Invoke-Api `
+        -Method "POST" `
+        -Url "$BASE_URL/sessions" `
+        -Headers @{ "x-api-key" = $API_KEY } `
+        -Body @{ name = "Integration Test Run C (empty)"; hostname = "localhost" }
+
+    $sessionCId = $runC.sessionId
+
+    if ($runC.success -and $sessionCId) {
+        Pass "POST /sessions creates Run C (no events)"
+    } else {
+        Fail "Run C creation failed"
+    }
+
+    if ($sessionCId) {
+        $endC = Invoke-Api `
+            -Method "PATCH" `
+            -Url "$BASE_URL/sessions/$sessionCId/end" `
+            -Headers @{ "x-api-key" = $API_KEY }
+
+        if ($endC.success) {
+            Pass "Run C ended successfully with zero events"
+        } else {
+            Fail "Run C failed to end"
+        }
+
+        Assert-ListStatsMatch $sessionCId "Run C (empty)"
+    }
+}
+catch {
+    Fail "Run C zero-request test failed: $($_.Exception.Message)"
+}
+
+# Cross-API-key isolation (optional — requires a second real test key)
+$API_KEY_2 = $env:DEVMETRICS_TEST_API_KEY_2
+
+if ($API_KEY_2) {
+    try {
+        $listUnderKey2 = Invoke-Api `
+            -Method "GET" `
+            -Url "$BASE_URL/sessions" `
+            -Headers @{ "x-api-key" = $API_KEY_2 }
+
+        $leaked = @($listUnderKey2.data) | Where-Object {
+            $_.id -eq $sessionAId -or $_.id -eq $sessionBId -or $_.id -eq $sessionCId
+        }
+
+        if ($leaked.Count -eq 0) {
+            Pass "Cross-API-key isolation - Key 2 cannot see Key 1's Runs"
+        } else {
+            Fail "Cross-API-key isolation - Key 2's list leaked $($leaked.Count) Run(s) belonging to Key 1"
+        }
+    }
+    catch {
+        Fail "Cross-API-key isolation check failed: $($_.Exception.Message)"
+    }
+} else {
+    Write-Host "SKIP - Cross-API-key isolation (set `$env:DEVMETRICS_TEST_API_KEY_2` to a second valid key to enable)" -ForegroundColor Yellow
+}
+
+# ============================================================
 # FINAL
 # ============================================================
 

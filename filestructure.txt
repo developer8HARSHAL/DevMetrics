@@ -16,12 +16,15 @@
         |-- apiKeyController.js
         |-- authController.js
         |-- logsController.js
+        |-- sessionController.js
         |-- trackController.js
     |-- middleware
         |-- auth.js
     |-- models
         |-- ApiKey.js
         |-- Request.js
+        |-- RunFinding.js
+        |-- Session.js
     |-- package-lock.json
     |-- package.json
     |-- README.md
@@ -29,11 +32,17 @@
         |-- apiKey.js
         |-- auth.js
         |-- logs.js
+        |-- sessions.js
         |-- track.js
     |-- scripts
+        |-- addSessionTables.js
         |-- addUserColumns.js
         |-- seedApiKey.js
         |-- setup.js
+        |-- test-integration.ps1
+    |-- services
+        |-- analysis.js
+        |-- compare.js
     |-- utils
         |-- alert.js
 |-- devmetrics-dashboard
@@ -83,20 +92,6 @@
                 |-- page.js
             |-- utils
                 |-- formatters.js
-|-- devmetrics-sdk
-    |-- .gitignore
-    |-- example
-        |-- testApp.js
-    |-- index.js
-    |-- package-lock.json
-    |-- package.json
-    |-- Readme.md
-    |-- src
-        |-- init.js
-        |-- track.js
-        |-- utils.js
-        |-- wrapAxios.js
-        |-- wrapFetch.js
 |-- devmetrics_complete_doc.md
 |-- jest.config.js
 |-- jest.setup.js
@@ -106,5 +101,4 @@
 |-- tests
     |-- api.security.test.js
     |-- metrics.contract.test.js
-    |-- sdk.integration.test.js
 |-- vercel.json
