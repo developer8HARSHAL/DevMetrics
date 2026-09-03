@@ -65,10 +65,11 @@ export const getUserApiKey = async (req, res) => {
   try {
     const { userId } = req.params;
 
-    const apiKey = await ApiKey.findOne({ user_id: userId });
+    let apiKey = await ApiKey.findOne({ user_id: userId });
 
-    if (!apiKey) {
+if (!apiKey) {
   const key = ApiKey.generateKey();
+
   apiKey = await ApiKey.create({
     key,
     owner: userId,
@@ -78,6 +79,7 @@ export const getUserApiKey = async (req, res) => {
     requestsPerDay: 100000,
     expiresAt: null,
     userId,
+    userEmail: req.user?.email || null,
   });
 }
 
