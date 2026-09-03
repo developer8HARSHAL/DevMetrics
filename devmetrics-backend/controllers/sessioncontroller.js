@@ -66,7 +66,7 @@ export const endSession = async (req, res) => {
 export const listSessions = async (req, res) => {
   try {
     const apiKey = req.apiKeyDoc.key;
-    const sessions = await Session.findByApiKey(apiKey);
+    const sessions = await Session.findByApiKeyWithStats(apiKey);
 
     res.json({
       success: true,
@@ -180,14 +180,16 @@ export const compareSessions = async (req, res) => {
       return res.status(404).json({ success: false, message: "Run B not found" });
     }
 
-    const [requestsA, requestsB] = await Promise.all([
+    const [requestsA, requestsB, findingsA, findingsB] = await Promise.all([
       Request.findBySessionId(a),
-      Request.findBySessionId(b)
+      Request.findBySessionId(b),
+      RunFinding.findBySessionId(a),
+      RunFinding.findBySessionId(b)
     ]);
 
     const diff = compareRuns(
-      { session: sessionA, requests: requestsA },
-      { session: sessionB, requests: requestsB }
+      { session: sessionA, requests: requestsA, findings: findingsA },
+      { session: sessionB, requests: requestsB, findings: findingsB }
     );
 
     res.json({
