@@ -1,0 +1,390 @@
+/* ============================================================================
+   DevMetrics — Global Stylesheet
+   Single source of truth for design tokens. No raw hex or arbitrary Tailwind
+   utility colors should appear in components — reference these tokens only.
+
+   ASSUMPTIONS (flag/correct if wrong):
+   1. Tailwind v4 — no tailwind.config.js was in your file tree, and v4's
+      CSS-first config (@theme) doesn't need one. If you're actually on v3,
+      this needs a different shape (@tailwind directives + JS config)  —
+      tell me and I'll rewrite it.
+   2. Dark-mode is class-based (`.dark` on <html>), toggled by a component
+      like your ThemeToggle. Adjust the @custom-variant line below if you're
+      using next-themes' data-attribute strategy instead.
+   3. IBM Plex Sans (UI) + IBM Plex Mono (data: endpoints, status codes,
+      timestamps) loaded via next/font in layout.js, exposing
+      --font-sans / --font-mono. I have not touched layout.js — say the word
+      and I'll wire that up next.
+   4. Dark-theme values below are proposed, not confirmed — you only gave me
+      the light palette. Review before shipping.
+
+   ============================================================================ */
+
+@import "tailwindcss";
+
+@custom-variant dark (&:is(.dark *));
+
+/* ----------------------------------------------------------------------------
+   1. TOKENS — Light theme (default)
+   ---------------------------------------------------------------------------- */
+:root {
+  /* --- Surfaces --- */
+  --background: #fbfcf8;
+  --foreground: #0f1512;
+  --card: #ffffff;
+  --card-foreground: #0f1512;
+  --popover: #ffffff;
+  --popover-foreground: #0f1512;
+  --muted: #f1f5f9;
+  --muted-foreground: #64748b;
+  --border: #e2e8f0;
+  --input: #e2e8f0;
+
+  /* --- Brand --- */
+  /* Both primary and accent are high-luminance colors (contrast ratio to
+     white < 1.4:1) — they can only ever carry a DARK foreground, never
+     white. --secondary is reused as that foreground: it tests at 7.7:1
+     (primary) and 6.4:1 (accent), so it's the natural pairing rather than
+     inventing a separate near-black. */
+  --primary: #aff33e;
+  --primary-foreground: #1a2216;
+  --secondary: #334155;
+  --secondary-foreground: #ffffff;
+  --accent: #0fdff4;
+  --accent-foreground: #0a2e33;
+
+  /* --- Status / severity ---
+     Findings (critical/warning/info) and Compare Verdicts
+     (improved/regressed/unchanged/mixed) both key off this set. */
+  --destructive: #ef4444;               /* badges, borders, icons, subtle fills */
+  --destructive-strong: #dc2626;        /* text/solid-fill use — #ef4444 tests at
+                                            3.76:1 on white, fails AA for text */
+  --destructive-foreground: #ffffff;
+
+  --warning: #f59e0b;
+  --warning-strong: #b45309;            /* text use on light tints — raw #f59e0b
+                                            tests at 2.1:1, fails badly */
+  --warning-foreground: #1a2216;        /* white-on-amber fails AA (2.1:1);
+                                            dark text passes at 4.8:1 */
+
+  --success: #15803d;                   /* distinct hue from --primary on purpose —
+                                            lime already means "brand", not "good" */
+  --success-foreground: #ffffff;
+
+  --info: var(--accent);
+  --info-strong: #0e7490;               /* text use — raw accent cyan on white
+                                            tests at ~1.6:1 */
+  --info-foreground: var(--accent-foreground);
+
+  --ring: #aff33e;
+
+  /* Card "muted" variant surface — one step between --card and --muted.
+     Wasn't in your original palette; proposed value, review it. */
+  --surface-1: #f6f8f3;
+
+  /* Named motion pair used by the interactive Card variant */
+  --duration-normal: 200ms;
+  --ease-standard: cubic-bezier(0.2, 0, 0, 1);
+
+  /* --- Charts / data viz (extend as needed, keep to this set) --- */
+  --chart-1: var(--primary);
+  --chart-2: var(--accent);
+  --chart-3: var(--secondary);
+  --chart-4: var(--warning);
+  --chart-5: var(--muted-foreground);
+
+  --radius: 0.5rem;
+}
+
+/* ----------------------------------------------------------------------------
+   2. TOKENS — Dark theme (proposed — not yet confirmed against real product)
+   ---------------------------------------------------------------------------- */
+.dark {
+  --background: #0b0f14;
+  --foreground: #f1f5f9;
+  --card: #121820;
+  --card-foreground: #f1f5f9;
+  --popover: #121820;
+  --popover-foreground: #f1f5f9;
+  --muted: #1a222c;
+  --muted-foreground: #94a3b8;
+  --border: #263140;
+  --input: #263140;
+
+  --primary: #aff33e;
+  --primary-foreground: #14210d;
+  --secondary: #cbd5e1;
+  --secondary-foreground: #0f1512;
+  --accent: #0fdff4;
+  --accent-foreground: #062226;
+
+  --destructive: #f87171;
+  --destructive-strong: #f87171;        /* on a dark card, the base hue itself
+                                            already clears AA as text — no need
+                                            to darken further like the light theme */
+  --destructive-foreground: #1a0505;
+
+  --warning: #fbbf24;
+  --warning-strong: #fbbf24;
+  --warning-foreground: #1a1206;
+
+  --success: #4ade80;
+  --success-foreground: #052e13;
+
+  --info: var(--accent);
+  --info-strong: var(--accent);
+  --info-foreground: var(--accent-foreground);
+
+  --ring: #aff33e;
+
+  --surface-1: #161d26;
+
+  --duration-normal: 200ms;
+  --ease-standard: cubic-bezier(0.2, 0, 0, 1);
+
+  --chart-1: var(--primary);
+  --chart-2: var(--accent);
+  --chart-3: var(--secondary);
+  --chart-4: var(--warning);
+  --chart-5: var(--muted-foreground);
+}
+
+/* ----------------------------------------------------------------------------
+   3. Tailwind theme mapping — makes tokens usable as bg-background,
+      text-foreground, border-border, bg-destructive-strong, etc.
+   ---------------------------------------------------------------------------- */
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+
+  --color-destructive: var(--destructive);
+  --color-destructive-strong: var(--destructive-strong);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-warning: var(--warning);
+  --color-warning-strong: var(--warning-strong);
+  --color-warning-foreground: var(--warning-foreground);
+  --color-success: var(--success);
+  --color-success-foreground: var(--success-foreground);
+  --color-info: var(--info);
+  --color-info-strong: var(--info-strong);
+  --color-info-foreground: var(--info-foreground);
+
+  --color-ring: var(--ring);
+  --color-surface-1: var(--surface-1);
+
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+
+  --font-sans: var(--font-sans, "IBM Plex Sans", ui-sans-serif, system-ui, sans-serif);
+  --font-mono: var(--font-mono, "IBM Plex Mono", ui-monospace, "SFMono-Regular", monospace);
+
+  /* Named type scale — Badge.jsx (text-micro), EmptyState.jsx (text-micro,
+     text-heading-md, text-body-sm), and Card.jsx were already written
+     against these class names; they just didn't exist yet. Sits alongside
+     Tailwind's default text-xs/sm/base scale rather than replacing it —
+     these three are specifically for badge/eyebrow/empty-state copy. */
+  --text-micro: 0.6875rem;
+  --text-micro--line-height: 1rem;
+  --text-body-sm: 0.875rem;
+  --text-body-sm--line-height: 1.5rem;
+  --text-heading-md: 1.25rem;
+  --text-heading-md--line-height: 1.75rem;
+}
+
+/* Named motion utilities — used by Card.jsx's "interactive" variant
+   (duration-normal ease-standard) via Tailwind v4's @utility directive,
+   the CSS-native way to add one-off utility classes without a JS config. */
+@utility duration-normal {
+  transition-duration: var(--duration-normal);
+}
+
+@utility ease-standard {
+  transition-timing-function: var(--ease-standard);
+}
+
+/* ----------------------------------------------------------------------------
+   4. Base layer
+   ---------------------------------------------------------------------------- */
+@layer base {
+  * {
+    border-color: var(--border);
+  }
+
+  html {
+    color-scheme: light;
+    -webkit-text-size-adjust: 100%;
+  }
+
+  html.dark {
+    color-scheme: dark;
+  }
+
+  body {
+    background-color: var(--color-background);
+    color: var(--color-foreground);
+    font-family: var(--font-sans);
+    font-size: 16px;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  /* Technical/tabular fields — endpoints, status codes, timestamps,
+     response times — get the mono face with tabular numerals so columns
+     of numbers actually align in dense rows. */
+  .font-data {
+    font-family: var(--font-mono);
+    font-variant-numeric: tabular-nums;
+  }
+
+  h1, h2, h3, h4 {
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    line-height: 1.2;
+  }
+
+  h1 { font-size: clamp(1.5rem, 1.1rem + 1.2vw, 2rem); }
+  h2 { font-size: clamp(1.25rem, 1rem + 0.7vw, 1.5rem); }
+  h3 { font-size: 1.125rem; }
+
+  /* Accessible focus ring: lime alone is ~1.3:1 against white and fails the
+     3:1 non-text contrast requirement. Layering a dark inner edge under the
+     brand ring keeps it on-brand but actually visible on light surfaces. */
+  :focus-visible {
+    outline: none;
+    box-shadow:
+      0 0 0 2px var(--color-background),
+      0 0 0 4px var(--color-ring),
+      0 0 0 5px color-mix(in srgb, var(--color-secondary) 45%, transparent);
+    border-radius: var(--radius-sm);
+  }
+
+  ::selection {
+    background-color: var(--color-primary);
+    color: var(--color-primary-foreground);
+  }
+
+  /* Thin scrollbars — this is a dense, data-heavy dashboard; default OS
+     scrollbars are visually loud against the token system. */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: var(--color-border) transparent;
+  }
+  *::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+  *::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  *::-webkit-scrollbar-thumb {
+    background-color: var(--color-border);
+    border-radius: 999px;
+    border: 2px solid var(--color-background);
+  }
+  *::-webkit-scrollbar-thumb:hover {
+    background-color: var(--color-muted-foreground);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+}
+
+/* ----------------------------------------------------------------------------
+   5. App shell — mesh, inputs, table chrome (used by layouts/pages only)
+   ---------------------------------------------------------------------------- */
+@layer components {
+  .dm-shell-mesh {
+    background-image:
+      radial-gradient(ellipse 90% 60% at 50% -25%, color-mix(in srgb, var(--color-primary) 14%, transparent), transparent 55%),
+      radial-gradient(ellipse 50% 40% at 100% 0%, color-mix(in srgb, var(--color-accent) 10%, transparent), transparent 50%);
+  }
+
+  .dm-input {
+    height: 2.75rem;
+    width: 100%;
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--color-input);
+    background-color: var(--color-background);
+    padding-inline: 0.75rem;
+    font-size: 0.875rem;
+    line-height: 1.25rem;
+    transition: border-color var(--duration-normal) var(--ease-standard), box-shadow var(--duration-normal) var(--ease-standard);
+  }
+
+  .dm-input:focus {
+    outline: none;
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-primary) 22%, transparent);
+  }
+
+  .dm-select {
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='none' stroke='%2364748b' stroke-width='2'%3E%3Cpath d='m4 6 4 4 4-4'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 0.75rem center;
+    padding-right: 2.25rem;
+  }
+
+  .dm-filter-chip {
+    border-radius: 9999px;
+    padding: 0.375rem 0.875rem;
+    font-family: var(--font-mono);
+    font-size: var(--text-micro);
+    line-height: var(--text-micro--line-height);
+    text-transform: capitalize;
+    transition: background-color var(--duration-normal) var(--ease-standard), color var(--duration-normal) var(--ease-standard), box-shadow var(--duration-normal) var(--ease-standard);
+  }
+
+  .dm-filter-chip[aria-pressed="true"] {
+    background-color: color-mix(in srgb, var(--color-primary) 16%, transparent);
+    color: var(--color-foreground);
+    box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--color-primary) 35%, transparent);
+  }
+
+  .dm-filter-chip[aria-pressed="false"] {
+    color: var(--color-muted-foreground);
+  }
+
+  .dm-filter-chip[aria-pressed="false"]:hover {
+    background-color: var(--color-muted);
+    color: var(--color-foreground);
+  }
+
+  .dm-stat-tile {
+    border-radius: var(--radius-xl);
+    border: 1px solid var(--color-border);
+    background: linear-gradient(180deg, var(--color-card) 0%, color-mix(in srgb, var(--color-surface-1) 65%, var(--color-card)) 100%);
+    padding: 1rem 1.25rem;
+    box-shadow: 0 1px 2px color-mix(in srgb, var(--color-foreground) 4%, transparent);
+  }
+}
