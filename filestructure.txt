@@ -9,14 +9,13 @@
     |-- .gitignore
     |-- app.js
     |-- config
-        |-- apiRegistry.js
         |-- bootstrap.js
         |-- db.js
     |-- controllers
         |-- apiKeyController.js
         |-- authController.js
         |-- logsController.js
-        |-- sessionController.js
+        |-- sessioncontroller.js
         |-- trackController.js
     |-- middleware
         |-- auth.js
@@ -37,6 +36,7 @@
     |-- scripts
         |-- addSessionTables.js
         |-- addUserColumns.js
+        |-- live-run-test.js
         |-- seedApiKey.js
         |-- setup.js
         |-- test-integration.ps1
@@ -52,53 +52,88 @@
     |-- .vercel
         |-- project.json
         |-- README.txt
+    |-- index.html
     |-- jsconfig.json
-    |-- next.config.mjs
     |-- package-lock.json
     |-- package.json
     |-- postcss.config.mjs
     |-- public
     |-- README.md
     |-- src
-        |-- app
-            |-- api-key
-                |-- page.js
-            |-- components
-                |-- ChartCard.jsx
-                |-- Loader.jsx
-                |-- LogsTable.jsx
-                |-- MetricCard.jsx
-                |-- Navbar.jsx
-                |-- Sidebar.jsx
-            |-- error.js
-            |-- errors
-                |-- page.js
-            |-- favicon.ico
-            |-- globals.css
-            |-- hooks
-                |-- useFetch.js
-            |-- layout.js
-            |-- layouts
-                |-- AuthLayout.js
-            |-- lib
-                |-- api.js
-                |-- supabase.js
-            |-- login
-                |-- page.js
-            |-- metrics
-                |-- page.js
-            |-- page.js
-            |-- signup
-                |-- page.js
-            |-- utils
-                |-- formatters.js
+        |-- App.jsx
+        |-- components
+            |-- AnalyticsLineChart.jsx
+            |-- ChartCard.jsx
+            |-- Loader.jsx
+            |-- LogsTable.jsx
+            |-- MetricCard.jsx
+            |-- RunRow.jsx
+            |-- ui
+                |-- Badge.jsx
+                |-- Button.jsx
+                |-- Card.jsx
+                |-- EmptyState.jsx
+                |-- ErrorState.jsx
+                |-- index.js
+                |-- SectionHeader.jsx
+                |-- Skeleton.jsx
+        |-- globals.css
+        |-- hooks
+            |-- useFetch.js
+        |-- layouts
+            |-- AuthLayout.jsx
+            |-- Navbar.jsx
+            |-- Sidebar.jsx
+        |-- lib
+            |-- api.js
+            |-- auth.js
+            |-- runs.js
+            |-- utils.js
+        |-- main.jsx
+        |-- pages
+            |-- Api-key.jsx
+            |-- auth
+                |-- Login.jsx
+                |-- Signup.jsx
+            |-- Compare.jsx
+            |-- Errors.jsx
+            |-- Home.jsx
+            |-- Logs.jsx
+            |-- Metrics.jsx
+            |-- session
+                |-- Session.jsx
+                |-- Sessiondetails.jsx
+            |-- Shared.jsx
+            |-- SharedReport.jsx
+        |-- utils
+            |-- formatters.js
+    |-- vite.config.ts
+|-- devmetrics-desktop
+    |-- assets
+        |-- .gitkeep
+    |-- package-lock.json
+    |-- package.json
+    |-- README.md
+    |-- src
+        |-- buffer.js
+        |-- ca.js
+        |-- config.js
+        |-- main.js
+        |-- proxy.js
+        |-- sessionManager.js
+        |-- settings
+            |-- preload.js
+            |-- settings.html
+            |-- settings.js
+        |-- startrun
+            |-- preload.js
+            |-- startrun.html
+            |-- startrun.js
+        |-- tray.js
 |-- devmetrics_complete_doc.md
 |-- jest.config.js
 |-- jest.setup.js
 |-- package-lock.json
 |-- package.json
 |-- README.md
-|-- tests
-    |-- api.security.test.js
-    |-- metrics.contract.test.js
 |-- vercel.json

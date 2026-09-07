@@ -8,6 +8,9 @@ import SessionDetails from "./pages/session/Sessiondetails";
 import Shared from "./pages/Shared";
 import Login from "./pages/auth/Login";
 import Signup from "./pages/auth/Signup";
+import Tests from "./pages/Tests";
+import TestDetails from "./pages/TestDetails";
+
 
 export default function App() {
   return (
@@ -17,6 +20,11 @@ export default function App() {
       <Route path="/shared/:token" element={<Shared />} />
       <Route element={<AuthLayout />}>
         <Route path="/" element={<Home />} />
+        <Route path="/tests" element={<Tests />} />
+        <Route
+          path="/tests/:id"
+          element={<TestDetails />}
+        />
         <Route path="/compare" element={<Compare />} />
         <Route path="/analytics" element={<Analytics />} />
         <Route path="/api-key" element={<ApiKey />} />

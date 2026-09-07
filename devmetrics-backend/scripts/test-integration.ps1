@@ -1,12 +1,12 @@
 $ErrorActionPreference = "Stop"
 
 # ============================================================
-# DevMetrics - Integrated System Smoke Test
+# DevMetrics - Backend Integration Test
 #
 # Run from repository root:
 #
 #   $env:DEVMETRICS_TEST_API_KEY="YOUR_TEST_API_KEY"
-#   powershell.exe -ExecutionPolicy Bypass -File .\test-integration.ps1
+#   powershell.exe -ExecutionPolicy Bypass -File .\scripts\test-backend-integration.ps1
 #
 # IMPORTANT:
 # - Never hardcode API keys in this file.
@@ -14,7 +14,7 @@ $ErrorActionPreference = "Stop"
 # ============================================================
 
 $BASE_URL = "http://localhost:5000"
-$API_KEY = "dm_e95365b0778383092728fa8baf571572fd1fd8d9e4d2bcab33f47f71aa2d9d61"
+$API_KEY ="dm_c55ba2fa51aa211834dd3fa524d5a9508867ff5223f58440420034c6d2761a87"
 
 if (-not $API_KEY) {
     Write-Host ""
@@ -686,7 +686,10 @@ function Assert-ListStatsMatch($sessionId, $label) {
         }
 
         if ($expected.has_ended) {
-            if ($row.duration_ms -is [double] -or $row.duration_ms -is [int]) {
+            if ($row.duration_ms -is [double] -or
+                $row.duration_ms -is [decimal] -or
+                $row.duration_ms -is [int]) {
+
                 if ($row.duration_ms -ge 0) {
                     Pass "$label - duration_ms present and non-negative ($($row.duration_ms))"
                 } else {

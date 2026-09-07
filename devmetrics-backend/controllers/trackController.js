@@ -3,15 +3,12 @@ import ApiKey from "../models/ApiKey.js";
 import Session from "../models/Session.js";
 import { transaction } from "../config/db.js";
 
-// Untouched per plan 2.5 — SDK compatibility.
 export const handleTrack = async (req, res) => {
   try {
     const { endpoint, method, status, responseTime, timestamp, apiKey } = req.body;
 
-    // req.apiKeyDoc already validated by auth middleware
     const apiKeyDoc = req.apiKeyDoc;
 
-    // Rate limit check
     const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000);
     const recentRequests = await Request.countDocuments({
       apiKey,
@@ -61,9 +58,7 @@ export const handleTrack = async (req, res) => {
 
 const VALID_HTTP_METHODS = new Set(['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'HEAD', 'OPTIONS', 'CONNECT', 'TRACE']);
 
-// Per-event validation for POST /track/batch, run before any row is built
-// or any DB call is made — fail fast on malformed input from the desktop
-// agent rather than partially trusting it.
+
 function validateEvent(e, index) {
   const errors = [];
 
@@ -88,15 +83,11 @@ function validateEvent(e, index) {
   return errors.length > 0 ? { index, errors } : null;
 }
 
-// New for Goal 2B — POST /track/batch. The desktop agent buffers events
-// locally and calls this once per batch instead of once per event, which
-// also fixes the current per-row countDocuments rate-limit cost: one
-// rate-limit check covers the whole batch instead of N separate checks.
+
 export const handleTrackBatch = async (req, res) => {
   try {
     const { sessionId, events } = req.body;
-    // Always the authenticated key from validateApiKey — never a
-    // client-supplied apiKey field, unlike legacy /track's req.body.apiKey.
+
     const apiKeyDoc = req.apiKeyDoc;
     const apiKey = apiKeyDoc.key;
 
@@ -151,10 +142,7 @@ export const handleTrackBatch = async (req, res) => {
       source: 'desktop'
     }));
 
-    // Insert + usage bump now live in the SAME transaction: either both
-    // land or neither does. Previously incrementUsage ran fire-and-forget
-    // outside the transaction, which could leave inserted rows with no
-    // corresponding usage accounting (or vice versa on a rare failure).
+
     const { inserted, apiKeyRow } = await transaction(async (client) => {
       const insertedRows = await Request.bulkCreate(rows, client);
       const updatedApiKeyRow = await ApiKey.incrementUsage(apiKey, events.length, client);

@@ -1,7 +1,6 @@
 import { query } from "../config/db.js";
 
-// Persisted output of services/analysis.js — computed once when a Run ends
-// (PATCH /sessions/:id/end), not recomputed on every dashboard view.
+
 class RunFinding {
   static async bulkCreate(sessionId, findings) {
     if (!findings || findings.length === 0) return [];

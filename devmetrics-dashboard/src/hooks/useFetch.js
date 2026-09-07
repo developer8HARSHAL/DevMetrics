@@ -45,9 +45,9 @@ export const useFetch = (fetchFunction, params = {}, dependencies = []) => {
     fetchData();
   }, [fetchData]);
 
-  const refetch = () => {
-    fetchData();
-  };
+ const refetch = useCallback(() => {
+  fetchData();
+}, [fetchData]);
 
   return { data, loading, error, refetch };
 };

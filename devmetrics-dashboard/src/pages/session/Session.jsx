@@ -7,13 +7,7 @@ import { LoadingState, EmptyState, ErrorState } from '../../components/runs/Sess
 import Card from "../../components/ui/Card";
 
 
-/**
- * FIXED: removed the unused `useNavigate`/`handleKeyDown` pair. RunRow
- * already owns its own click + Enter/Space navigation (to /sessions/:id) —
- * this page was building a second, disconnected keyboard handler and
- * passing it as an `onKeyDown` prop RunRow never read. One row, one owner
- * of its own interaction.
- */
+
 export default function RunsPage() {
   const { data, loading, error, refetch } = useFetch(fetchSessions);
 

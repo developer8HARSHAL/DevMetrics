@@ -11,7 +11,10 @@ const NAV = [
   { section: "Analysis", items: [
     { href: "/analytics", label: "Analytics", icon: BarChart3, shortcut: "a" },
   ]},
-  { section: "Developer", items: [
+  { section: "Tests", items: [
+    { href: "/tests", label: "Test", icon: KeyRound, shortcut: "t" },
+  ]},
+   { section: "Developer", items: [
     { href: "/api-key", label: "API keys", icon: KeyRound, shortcut: "k" },
   ]},
 ];

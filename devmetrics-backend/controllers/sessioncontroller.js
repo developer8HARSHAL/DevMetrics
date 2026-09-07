@@ -9,7 +9,12 @@ export const createSession = async (req, res) => {
     const { name, hostname } = req.body;
     const apiKey = req.apiKeyDoc.key;
 
-    const session = await Session.create({ apiKey, name, hostname });
+    const session = await Session.create({
+      apiKey,
+      name: test.name,
+      hostname,
+      testId,
+    });
 
     res.status(201).json({
       success: true,
@@ -39,8 +44,7 @@ export const endSession = async (req, res) => {
 
     const ended = await Session.end(id);
 
-    // Analysis runs synchronously here, per plan 2.8 — findings are
-    // persisted before the response goes out, not recomputed per view.
+
     const requests = await Request.findBySessionId(id);
     const findings = analyzeRun(requests);
     const savedFindings = await RunFinding.bulkCreate(id, findings);

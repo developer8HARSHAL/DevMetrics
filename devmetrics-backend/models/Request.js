@@ -76,17 +76,13 @@ class Request {
     return parseInt(result.rows[0].count);
   }
 
-  // Goal 2 (2C/3A): Run detail + compare pages need a run's full timeline.
   static async findBySessionId(sessionId) {
     const sql = 'SELECT * FROM requests WHERE session_id = $1 ORDER BY timestamp ASC';
     const result = await query(sql, [sessionId]);
     return result.rows;
   }
 
-  // Goal 2 (2B): batch ingestion — one multi-row INSERT for the whole batch
-  // instead of one round-trip per event. Accepts an optional transaction
-  // `client` (see config/db.js `transaction`); falls back to the pool-level
-  // `query` when called outside a transaction.
+
   static async bulkCreate(rows, client = null) {
     if (!rows || rows.length === 0) return [];
 
