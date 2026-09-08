@@ -23,6 +23,6 @@
     "isolatedModules": true,
     "jsx": "preserve"
   },
-  "include": ["next-env.d.ts", "**/*.js", "**/*.jsx"],
+  "include": ["next-env.d.ts", "**/*.js", "**/*.jsx", "src/app/lib/supabase.js", "../devmetrics-backend/scripts/live-run-test.js"],
   "exclude": ["node_modules"]
 }

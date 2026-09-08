@@ -70,7 +70,7 @@ init({
 
 ```javascript
 // app/layout.js
-'use client';
+
 import { useEffect } from 'react';
 import { init } from 'devmetrics-sdk';
 

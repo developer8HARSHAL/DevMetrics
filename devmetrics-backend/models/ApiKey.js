@@ -100,9 +100,11 @@ class ApiKey {
     return true;
   }
 
-  static async incrementUsage(key) {
-    const sql = `UPDATE api_keys SET usage_count = usage_count + 1, last_used_at = CURRENT_TIMESTAMP WHERE key = $1 RETURNING *`;
-    const result = await query(sql, [key]);
+ 
+  static async incrementUsage(key, count = 1, client = null) {
+    const runQuery = client ? client.query.bind(client) : query;
+    const sql = `UPDATE api_keys SET usage_count = usage_count + $2, last_used_at = CURRENT_TIMESTAMP WHERE key = $1 RETURNING *`;
+    const result = await runQuery(sql, [key, count]);
     return result.rows[0];
   }
 }

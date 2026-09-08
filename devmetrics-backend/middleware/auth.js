@@ -2,7 +2,7 @@ import ApiKey from "../models/ApiKey.js";
 
 export const validateApiKey = async (req, res, next) => {
   try {
-    const apiKey = req.body.apiKey || req.headers["x-api-key"];
+    const apiKey = (req.body && req.body.apiKey) || req.headers["x-api-key"];
     
     if (!apiKey) {
       return res.status(401).json({ 

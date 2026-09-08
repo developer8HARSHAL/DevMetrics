@@ -75,6 +75,66 @@ class Request {
     const result = await query(sql, values);
     return parseInt(result.rows[0].count);
   }
+
+  static async findBySessionId(sessionId) {
+    const sql = 'SELECT * FROM requests WHERE session_id = $1 ORDER BY timestamp ASC';
+    const result = await query(sql, [sessionId]);
+    return result.rows;
+  }
+
+
+  static async bulkCreate(rows, client = null) {
+    if (!rows || rows.length === 0) return [];
+
+    const runQuery = client ? client.query.bind(client) : query;
+    const columns = ['api_key', 'endpoint', 'method', 'status', 'response_time', 'timestamp', 'session_id', 'source'];
+    const values = [];
+
+    const rowPlaceholders = rows.map((r, i) => {
+      const base = i * columns.length;
+      values.push(
+        r.apiKey,
+        r.endpoint,
+        r.method.toUpperCase(),
+        r.status,
+        r.responseTime,
+        r.timestamp || new Date(),
+        r.sessionId,
+        r.source || 'desktop'
+      );
+      return `($${base + 1}, $${base + 2}, $${base + 3}, $${base + 4}, $${base + 5}, $${base + 6}, $${base + 7}, $${base + 8})`;
+    });
+
+    const sql = `
+      INSERT INTO requests (${columns.join(', ')})
+      VALUES ${rowPlaceholders.join(', ')}
+      RETURNING *
+    `;
+    const result = await runQuery(sql, values);
+    return result.rows;
+  }
+
+
+
+  static async findPublicBySessionId(sessionId) {
+  const sql = `
+    SELECT
+      id,
+      endpoint,
+      method,
+      status,
+      response_time,
+      timestamp,
+      source
+    FROM requests
+    WHERE session_id = $1
+    ORDER BY timestamp ASC
+  `;
+
+  const result = await query(sql, [sessionId]);
+  return result.rows;
+}
+
 }
 
 export default Request;
