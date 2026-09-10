@@ -1,33 +1,14 @@
-/**
- * Deterministic (no-LLM) analysis engine for a single Run.
- * Pure function: given a run's requests, returns an array of findings.
- * Zero DB/HTTP dependency by design — independently unit-testable.
- *
- * Input shape (matches the `requests` table / LogsTable row shape):
- *   { endpoint, method, status, response_time, timestamp, ... }
- *
- * Output shape (matches `run_findings` columns, minus id/session_id/created_at):
- *   { type, endpoint, severity, occurrences, meta }
- *
- * `run_findings.type` is plain TEXT, not CHECK-constrained, so this engine
- * is free to emit its own vocabulary. It emits six types: 'error' (isolated
- * or aggregate 4xx/5xx on an endpoint) plus the five named in the plan —
- * 'error_burst', 'duplicate_request', 'retry_pattern', 'latency_anomaly'.
- * ('status_change' is emitted by services/compare.js instead, since a
- * status *change* is inherently a two-run concept.)
- */
-
-const ERROR_BURST_WINDOW_MS = 10_000;   // 10s
+const ERROR_BURST_WINDOW_MS = 10_000;   
 const ERROR_BURST_MIN_COUNT = 3;
 
-const DUPLICATE_WINDOW_MS = 10_000;     // 10s
+const DUPLICATE_WINDOW_MS = 10_000;     
 const DUPLICATE_MIN_COUNT = 5;
 
-const RETRY_GAP_MS = 5_000;             // consecutive same-endpoint calls within 5s of a prior failure
+const RETRY_GAP_MS = 5_000;         
 
 const LATENCY_STDDEV_MULTIPLIER = 2;
-const LATENCY_MIN_SAMPLES = 5;          // too few samples to trust a mean/stddev
-const LATENCY_MIN_MS = 200;             // floor below which "anomalies" are just noise
+const LATENCY_MIN_SAMPLES = 5;       
+const LATENCY_MIN_MS = 200;            
 
 function toMillis(ts) {
   return new Date(ts).getTime();
@@ -74,7 +55,6 @@ function detectErrors(endpoint, requests) {
   }];
 }
 
-/** Rule: cluster of >= N failures within a short rolling window. */
 function detectErrorBursts(endpoint, requests) {
   const errors = sortByTime(requests.filter(r => r.status >= 400));
   if (errors.length < ERROR_BURST_MIN_COUNT) return [];
@@ -103,7 +83,6 @@ function detectErrorBursts(endpoint, requests) {
   }];
 }
 
-/** Rule: same method+endpoint fired >= N times within a short window (loop-like behavior). */
 function detectDuplicates(endpoint, requests) {
   const findings = [];
 
@@ -135,7 +114,6 @@ function detectDuplicates(endpoint, requests) {
   return findings;
 }
 
-/** Rule: same method+endpoint, a failing request quickly followed by another attempt. */
 function detectRetryPatterns(endpoint, requests) {
   const findings = [];
 
@@ -183,15 +161,7 @@ function median(sortedNums) {
     : (sortedNums[mid - 1] + sortedNums[mid]) / 2;
 }
 
-/**
- * Rule: response time significantly exceeds this endpoint's own typical
- * response time within the run.
- *
- * Uses median + MAD (median absolute deviation), not mean + stddev.
- * With small run sizes a single extreme outlier drags the mean/stddev up
- * with it, which can push the outlier itself back under the threshold
- * ("self-masking") — median/MAD is robust to exactly this case.
- */
+
 function detectLatencyAnomalies(endpoint, requests) {
   const times = requests.map(r => Number(r.response_time)).filter(n => !Number.isNaN(n));
   if (times.length < LATENCY_MIN_SAMPLES) return [];
@@ -200,7 +170,6 @@ function detectLatencyAnomalies(endpoint, requests) {
   const med = median(sorted);
   const absDeviations = sorted.map(t => Math.abs(t - med)).sort((a, b) => a - b);
   const mad = median(absDeviations);
-  // 1.4826 scales MAD to be comparable to stddev under a normal distribution.
   const scaledMad = mad * 1.4826;
   const threshold = med + LATENCY_STDDEV_MULTIPLIER * scaledMad;
 

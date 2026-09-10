@@ -5,8 +5,6 @@ import cors from "cors";
 
 import pool, { query } from "./config/db.js";
 
-import trackRoutes from "./routes/track.js";
-import logsRoutes from "./routes/logs.js";
 import apiKeyRoutes from "./routes/apiKey.js";
 import authRoutes from "./routes/auth.js";
 import sessionRoutes from "./routes/sessions.js";
@@ -25,8 +23,6 @@ app.use((req, res, next) => {
 });
 
 app.use("/auth", authRoutes);
-app.use("/track", trackRoutes);
-app.use("/logs", logsRoutes);
 app.use("/apikey", apiKeyRoutes);
 app.use("/sessions", sessionRoutes);
 app.use("/tests", testRoutes);
@@ -36,13 +32,6 @@ app.get("/", (req, res) => {
     message: "DevMetrics Backend is running!",
     version: "1.0.0",
     endpoints: {
-      tracking: "/track",
-      analytics: {
-        overview: "/logs/metrics/overview",
-        endpoint: "/logs/metrics/endpoint",
-        recent: "/logs/metrics/recent",
-        errors: "/logs/metrics/errors"
-      },
       apiKeyManagement: "/apikey",
       runs: "/sessions"
     }
@@ -98,12 +87,7 @@ async function startServer() {
       console.log(`✓ Server running on http://localhost:${PORT}`);
       console.log(`  Environment: ${process.env.NODE_ENV || 'development'}`);
       console.log('\nEndpoints:');
-      console.log('  POST /track');
-      console.log('  POST /track/batch');
-      console.log('  GET  /logs/metrics/overview');
-      console.log('  GET  /logs/metrics/endpoint');
-      console.log('  GET  /logs/metrics/recent');
-      console.log('  GET  /logs/metrics/errors');
+
       console.log('  POST /apikey');
       console.log('  GET  /apikey');
       console.log('  POST /sessions');

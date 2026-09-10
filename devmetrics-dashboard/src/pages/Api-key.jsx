@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { KeyRound } from "lucide-react";
 import { useFetch } from "../hooks/useFetch";
-import { getApiKey, setApiKey, clearApiKey, createApiKey, fetchApiKeys, updateApiKey, revokeApiKey, deleteApiKey } from "../lib/auth";
+import { getApiKey, setApiKey, clearApiKey } from "../lib/auth";
+import { createApiKey, fetchApiKeys, updateApiKey, revokeApiKey, deleteApiKey } from "../lib/apiKeys";
 import Card from "../components/ui/Card";
 import Button from "../components/ui/Button";
 import Badge from "../components/ui/Badge";
