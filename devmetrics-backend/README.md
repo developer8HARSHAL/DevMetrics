@@ -1,375 +1,265 @@
-# DevMetrics Backend
+DevMetrics Backend
 
-Backend server for DevMetrics - API monitoring and analytics platform.
+Backend API and test execution service for DevMetrics.
 
-## Features
+The backend provides Test management, Test Request management, Run execution, Run reporting, deterministic finding analysis, Run comparison, API key management, authentication, shared reports, and health checks.
 
-✅ **Tracking API** - Receive and store API request metrics from SDK
-✅ **API Key Management** - Create, manage, and revoke API keys
-✅ **Analytics APIs** - Provide metrics for dashboard
-✅ **Rate Limiting** - Per-key rate limiting support
-✅ **MongoDB Storage** - Efficient data storage and aggregation
-✅ **Authentication** - Admin and API key authentication
+Stack
 
-## Prerequisites
+Node.js
 
-- Node.js >= 16.0.0
-- MongoDB (local or cloud instance)
+Express
 
-## Installation
+PostgreSQL
 
-```bash
-cd devmetrics-backend
-npm install
-```
+Responsibilities
 
-## Configuration
+Authenticate protected API requests.
 
-1. Copy the example environment file:
-```bash
-cp .env.example .env
-```
+Store Tests and Test Requests.
 
-2. Update `.env` with your configuration:
-```env
+Start backend-generated Runs.
+
+Execute Test Requests over HTTP.
+
+Persist request results for each Run.
+
+Analyze Run results and persist findings.
+
+Compare two Runs for regression analysis.
+
+Manage API keys.
+
+Serve public shared Run reports.
+
+Expose service and database health.
+
+API structure
+
+Authentication
+
+Protected Test, Run, and API-key operations require the configured authentication mechanism. The dashboard sends its active API key with protected requests.
+
+Public shared reports are scoped by share token and do not require the dashboard API key.
+
+Tests
+
+All Test routes are under /tests.
+
+POST   /tests
+GET    /tests
+GET    /tests/:id
+PATCH  /tests/:id
+DELETE /tests/:id
+
+Test Requests
+
+POST   /tests/:testId/requests
+PATCH  /tests/:testId/requests/:requestId
+DELETE /tests/:testId/requests/:requestId
+
+A Test can contain multiple Test Requests. Requests are executed by the backend when the Test is run.
+
+Test Runs
+
+GET  /tests/:testId/runs
+POST /tests/:testId/runs
+
+POST /tests/:testId/runs creates and starts a real backend-generated Run for the selected Test.
+
+Runs
+
+Runs use the existing /sessions API namespace.
+
+POST   /sessions
+GET    /sessions
+GET    /sessions/:id
+PATCH  /sessions/:id/end
+GET    /sessions/compare?a=<runA>&b=<runB>
+GET    /sessions/shared/:token
+
+A Run records execution metadata including status, start and end timestamps, duration, request count, error count, finding count, and highest finding severity.
+
+Individual request results remain associated with the Run and are used to build the Run report.
+
+Run analysis
+
+After execution, the analysis service evaluates request results and persists deterministic findings.
+
+Current finding categories include:
+
+error
+
+error_burst
+
+duplicate_request
+
+retry_pattern
+
+latency_anomaly
+
+Findings are stored for the Run and exposed through the Run reporting flow.
+
+Run comparison
+
+The comparison service compares two completed Runs.
+
+The response includes deltas for:
+
+Average response time
+
+Error count
+
+Request count
+
+Duration
+
+It also reports:
+
+Endpoints only present in Run A
+
+Endpoints only present in Run B
+
+Shared endpoints
+
+HTTP status changes
+
+Resolved findings
+
+New findings
+
+Overall verdict
+
+Possible verdicts are:
+
+regressed
+improved
+unchanged
+mixed
+
+API key management
+
+API key management is exposed under /apikey.
+
+POST   /apikey
+GET    /apikey
+GET    /apikey/:key
+PUT    /apikey/:key
+DELETE /apikey/:key
+
+Create
+
+POST /apikey creates a new API key.
+
+Request fields include:
+
+owner
+
+description
+
+rateLimit
+
+expiresAt
+
+List
+
+GET /apikey returns managed keys and their metadata.
+
+Get
+
+GET /apikey/:key returns a specific key and its metadata.
+
+Update
+
+PUT /apikey/:key updates supported key metadata such as description, status, rate limits, and expiration.
+
+Revoke or delete
+
+DELETE /apikey/:key revokes the key by default.
+
+Use ?permanent=true for permanent deletion.
+
+Shared reports
+
+Shared Run reports are available at:
+
+GET /sessions/shared/:token
+
+This endpoint is public and is scoped by the Run share token.
+
+Health check
+
+GET /health
+
+The health endpoint checks database connectivity and returns the service status, timestamp, uptime, and database status.
+
+Configuration
+
+Create the backend environment file from the project's environment example and configure the values required by the local PostgreSQL connection and authentication setup.
+
+Typical local development values include:
+
 PORT=5000
 NODE_ENV=development
-MONGODB_URI=mongodb://localhost:27017/devmetrics
-ADMIN_KEY=your_super_secure_admin_key_here
-DASHBOARD_KEY=your_dashboard_key_here
-```
 
-3. Generate a secure admin key:
-```bash
-node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
-```
+Database credentials depend on the local or hosted PostgreSQL environment.
 
-## Running the Server
+Installation
 
-### Development Mode
-```bash
+cd devmetrics-backend
+npm install
+
+Development
+
 npm run dev
-```
 
-### Production Mode
-```bash
+Production
+
 npm start
-```
 
-## Creating Your First API Key
+Verification
 
-Run the seed script to create an initial API key:
+A basic backend verification should confirm:
 
-```bash
-npm run seed <owner-name> <description>
-```
+The server starts successfully.
 
-Example:
-```bash
-npm run seed "my-app" "Production API key"
-```
+/health reports a healthy database connection.
 
-This will output an API key that you can use in your SDK configuration.
+A Test can be created.
 
-## API Endpoints
+Test Requests can be added to the Test.
 
-### 1. Tracking Endpoint (Used by SDK)
+A Test Run can be started.
 
-#### `POST /track`
-Receives tracking data from SDK.
+The Run reaches its expected execution state.
 
-**Request Body:**
-```json
-{
-  "apiKey": "dm_abc123...",
-  "endpoint": "/api/users",
-  "method": "GET",
-  "status": 200,
-  "responseTime": 145,
-  "timestamp": "2024-01-15T10:30:00.000Z"
-}
-```
+The Run report contains request results and findings.
 
-**Response:**
-```json
-{
-  "success": true,
-  "message": "Request tracked successfully",
-  "id": "..."
-}
-```
+Two Runs can be compared.
 
-### 2. Analytics Endpoints (For Dashboard)
+Security
 
-#### `GET /logs/metrics/overview`
-Get high-level statistics.
+Validate and restrict outbound HTTP targets before executing them.
 
-**Query Parameters:**
-- `startDate` (optional) - Start date for filtering
-- `endDate` (optional) - End date for filtering
-- `apiKey` (optional) - Filter by specific API key
+Block unsafe internal and private network targets where appropriate.
 
-**Response:**
-```json
-{
-  "success": true,
-  "data": {
-    "totalRequests": 1500,
-    "successRate": "95.50",
-    "avgResponseTime": "234.56",
-    "minResponseTime": 45,
-    "maxResponseTime": 2300,
-    "requestsByStatus": [...],
-    "requestsByMethod": [...],
-    "requestsOverTime": [...]
-  }
-}
-```
+Enforce request timeouts and response-size limits.
 
-#### `GET /logs/metrics/endpoint`
-Get statistics per endpoint.
+Protect API keys and authentication secrets.
 
-**Query Parameters:**
-- `startDate`, `endDate`, `apiKey`, `endpoint`
+Use HTTPS in production.
 
-**Response:**
-```json
-{
-  "success": true,
-  "data": [
-    {
-      "endpoint": "/api/users",
-      "totalRequests": 500,
-      "avgResponseTime": 150.25,
-      "successRate": 98.5,
-      "errorRate": 1.5,
-      "methods": ["GET", "POST"]
-    }
-  ]
-}
-```
+Do not commit secrets to source control.
 
-#### `GET /logs/metrics/recent`
-Get recent requests.
+Removed legacy telemetry
 
-**Query Parameters:**
-- `limit` (default: 100) - Number of results
-- `page` (default: 1) - Page number
-- `apiKey`, `status`, `endpoint` - Filters
+The backend no longer uses the old SDK telemetry endpoints:
 
-**Response:**
-```json
-{
-  "success": true,
-  "data": [...],
-  "pagination": {
-    "page": 1,
-    "limit": 100,
-    "total": 1500,
-    "pages": 15
-  }
-}
-```
+/track
+/track/batch
+/logs/metrics/overview
+/logs/metrics/endpoint
+/logs/metrics/recent
+/logs/metrics/errors
 
-#### `GET /logs/metrics/errors`
-Get failed requests.
-
-**Query Parameters:**
-- `limit`, `page`, `apiKey`, `minStatus` (default: 400)
-
-### 3. API Key Management (Requires Admin Key)
-
-All these endpoints require `x-admin-key` header.
-
-#### `POST /apikey`
-Create a new API key.
-
-**Headers:**
-```
-x-admin-key: your_admin_key
-```
-
-**Request Body:**
-```json
-{
-  "owner": "my-application",
-  "description": "Production API key",
-  "rateLimit": {
-    "requestsPerHour": 10000,
-    "requestsPerDay": 100000
-  },
-  "expiresAt": "2025-12-31T23:59:59.000Z"
-}
-```
-
-#### `GET /apikey`
-List all API keys.
-
-**Query Parameters:**
-- `status` - Filter by status (active/inactive/revoked)
-- `owner` - Filter by owner
-- `page`, `limit` - Pagination
-
-#### `GET /apikey/:key`
-Get specific API key details.
-
-#### `PUT /apikey/:key`
-Update API key.
-
-**Request Body:**
-```json
-{
-  "description": "Updated description",
-  "status": "active",
-  "rateLimit": {
-    "requestsPerHour": 5000
-  }
-}
-```
-
-#### `DELETE /apikey/:key`
-Revoke or delete API key.
-
-**Query Parameters:**
-- `permanent=true` - Permanently delete (default is soft delete/revoke)
-
-#### `GET /apikey/:key/stats`
-Get usage statistics for a specific API key.
-
-### 4. Health Check
-
-#### `GET /health`
-Check server health and database connection.
-
-```json
-{
-  "status": "ok",
-  "timestamp": "2024-01-15T10:30:00.000Z",
-  "uptime": 3600,
-  "mongodb": "connected"
-}
-```
-
-## Database Schema
-
-### Collections
-
-#### `requests` (API Logs)
-- `apiKey` - String (indexed)
-- `endpoint` - String (indexed)
-- `method` - String (GET, POST, etc.)
-- `status` - Number (HTTP status code)
-- `responseTime` - Number (milliseconds)
-- `timestamp` - Date (indexed)
-
-#### `apikeys` (API Key Management)
-- `key` - String (unique, indexed)
-- `owner` - String
-- `description` - String
-- `status` - String (active/inactive/revoked)
-- `usageCount` - Number
-- `rateLimit` - Object
-- `lastUsedAt` - Date
-- `createdAt` - Date
-- `expiresAt` - Date
-
-## Rate Limiting
-
-Each API key has configurable rate limits:
-- `requestsPerHour` - Maximum requests per hour
-- `requestsPerDay` - Maximum requests per day
-
-When rate limit is exceeded, the API returns:
-```json
-{
-  "success": false,
-  "message": "Rate limit exceeded",
-  "limit": 10000,
-  "resetAt": "2024-01-15T11:00:00.000Z"
-}
-```
-
-## Error Handling
-
-All errors follow this format:
-```json
-{
-  "success": false,
-  "message": "Error description",
-  "error": "Detailed error (development only)"
-}
-```
-
-## Security Best Practices
-
-1. **Always use HTTPS in production**
-2. **Keep ADMIN_KEY secure** - Never commit to git
-3. **Use strong MongoDB passwords**
-4. **Enable MongoDB authentication**
-5. **Set appropriate CORS origins**
-6. **Regularly rotate API keys**
-7. **Monitor rate limits**
-8. **Set up proper logging**
-
-## Production Deployment
-
-1. Set `NODE_ENV=production`
-2. Use a process manager (PM2, systemd)
-3. Set up MongoDB replica set
-4. Configure reverse proxy (nginx)
-5. Enable SSL/TLS
-6. Set up monitoring and alerts
-7. Configure backup strategy
-
-### Example PM2 Configuration
-
-```json
-{
-  "apps": [{
-    "name": "devmetrics-backend",
-    "script": "app.js",
-    "instances": "max",
-    "exec_mode": "cluster",
-    "env": {
-      "NODE_ENV": "production"
-    }
-  }]
-}
-```
-
-## Troubleshooting
-
-### MongoDB Connection Issues
-```bash
-# Check MongoDB is running
-mongosh
-
-# Check connection string
-echo $MONGODB_URI
-```
-
-### API Key Not Working
-```bash
-# List all API keys
-curl -H "x-admin-key: YOUR_ADMIN_KEY" http://localhost:5000/apikey
-
-# Check API key status
-curl -H "x-admin-key: YOUR_ADMIN_KEY" http://localhost:5000/apikey/YOUR_API_KEY
-```
-
-### High Response Times
-- Check MongoDB indexes: `db.requests.getIndexes()`
-- Monitor query performance
-- Consider data archiving for old logs
-
-## Contributing
-
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Test thoroughly
-5. Submit a pull request
-
-## License
-
-MIT
+Those endpoints belonged to the previous passive monitoring model and are not part of the current Test → Run workflow.

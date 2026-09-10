@@ -1,356 +1,231 @@
-# 📊 DevMetrics
+DevMetrics
 
-> **Real-time API Monitoring & Analytics Platform**
+DevMetrics is a web-based API performance testing and regression analysis platform.
 
-[![NPM Version](https://img.shields.io/npm/v/devmetrics-sdk?color=4f46e5)](https://www.npmjs.com/package/devmetrics-sdk)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Node Version](https://img.shields.io/badge/node-%3E%3D16.0.0-brightgreen)](https://nodejs.org)
+It lets developers define reusable API tests, execute those tests against real HTTP endpoints, inspect each run, identify deterministic findings, and compare runs to detect regressions.
 
-Track, analyze, and optimize your API performance with beautiful real-time dashboards. Get started in 2 minutes with just 3 lines of code.
+Product workflow
 
-**[Live Demo](https://dev-metrics-six.vercel.app/)** • **[NPM Package](https://www.npmjs.com/package/devmetrics-sdk)** • **[API Docs](#-api-reference)**
+Tests → Test Requests → Start Run → Running → Completed → Report → Findings → Compare
 
----
+A Test is a reusable definition containing one or more Test Requests. A Run is one execution of a Test. Each Run stores the request results and the findings produced by the analysis service.
 
-## ✨ Features
+Core features
 
-- **🚀 Quick Setup** - Install SDK, add 3 lines, done!
-- **📊 Real-time Dashboard** - Beautiful charts and analytics
-- **🔄 Auto-Tracking** - Monitors `fetch()` and `axios` automatically
-- **🎯 Zero Dependencies** - Lightweight SDK (<5KB)
-- **🔐 Secure** - API key authentication with rate limiting
-- **🌐 Framework Agnostic** - Works with React, Vue, Next.js, Node.js, and more
+Create and manage reusable API tests.
 
----
+Define multiple HTTP requests inside a test.
 
-## 🚀 Quick Start
+Support GET, POST, PUT, PATCH, and DELETE requests.
 
-### 1. Install SDK
+Execute a test from the dashboard.
 
-```bash
-npm install devmetrics-sdk
-```
+Track Run status and request results.
 
-### 2. Initialize in Your App
+Inspect completed Run reports and timelines.
 
-```javascript
-import { init } from 'devmetrics-sdk';
+Generate deterministic findings for request-level problems and patterns.
 
-init({
-  apiKey: 'your-api-key',
-  backendUrl: 'https://devmetrics-backend.onrender.com',
-  trackFetch: true
-});
-```
+Compare two Runs and surface regressions, improvements, and mixed changes.
 
-### 3. View Dashboard
+Share Run reports publicly through a share token.
 
-Visit **https://dev-metrics-six.vercel.app** to see your metrics!
+Manage DevMetrics API keys used by the dashboard and API clients.
 
----
+View Run-based analytics.
 
-## 📖 Usage Examples
+Architecture
 
-### React / Vite
+┌─────────────────────┐
+│ DevMetrics Dashboard│
+│ React + Vite        │
+└──────────┬──────────┘
+           │ HTTP API
+           ▼
+┌─────────────────────┐
+│ DevMetrics Backend  │
+│ Node.js + Express   │
+└──────────┬──────────┘
+           │
+           ▼
+┌─────────────────────┐
+│ PostgreSQL Database │
+└─────────────────────┘
 
-```javascript
-// src/main.jsx
-import { init } from 'devmetrics-sdk';
+The backend owns Test execution, Run creation, request execution, result persistence, finding analysis, and Run comparison. The dashboard consumes those APIs and does not depend on passive API traffic tracking.
 
-init({
-  apiKey: import.meta.env.VITE_DEVMETRICS_KEY,
-  backendUrl: 'https://devmetrics-backend.onrender.com',
-  trackFetch: true
-});
+Main domain objects
 
-// All fetch() calls are now tracked automatically!
-```
+Test
 
-### Next.js
+A reusable API test definition.
 
-```javascript
-// app/layout.js
+Test Request
 
-import { useEffect } from 'react';
-import { init } from 'devmetrics-sdk';
+An HTTP request belonging to a Test. It defines the method, target URL, headers, body, and related request configuration.
 
-export default function RootLayout({ children }) {
-  useEffect(() => {
-    init({
-      apiKey: process.env.NEXT_PUBLIC_DEVMETRICS_KEY,
-      backendUrl: 'https://devmetrics-backend.onrender.com',
-      trackFetch: true
-    });
-  }, []);
+Run
 
-  return <html><body>{children}</body></html>;
-}
-```
+One execution of a Test. Runs are stored by the backend under the existing sessions model and API namespace.
 
-### Node.js / Express
+Request Result
 
-```javascript
-import { init, track } from 'devmetrics-sdk';
+The result of an individual Test Request during a Run.
 
-init({
-  apiKey: process.env.DEVMETRICS_API_KEY,
-  backendUrl: 'https://devmetrics-backend.onrender.com'
-});
+Finding
 
-// Track all routes
-app.use(async (req, res, next) => {
-  const start = Date.now();
-  res.on('finish', async () => {
-    await track({
-      endpoint: req.originalUrl,
-      method: req.method,
-      status: res.statusCode,
-      responseTime: Date.now() - start
-    });
-  });
-  next();
-});
-```
-
-### Manual Tracking
-
-```javascript
-import { track } from 'devmetrics-sdk';
-
-await track({
-  endpoint: '/api/users',
-  method: 'GET',
-  status: 200,
-  responseTime: 145
-});
-```
-
----
-
-## 🏗️ Architecture
-
-```
-Your App (SDK) → DevMetrics Backend (Express + MongoDB) → Dashboard (Next.js)
-```
-
-- **SDK** - Tracks API calls and sends metrics
-- **Backend** - Stores data and provides analytics APIs
-- **Dashboard** - Visualizes metrics with interactive charts
+A deterministic analysis result produced from Run request results. Findings can identify errors, error bursts, duplicate requests, retry patterns, and latency anomalies.
 
----
+Dashboard routes
 
-## 📦 Project Structure
+Route
 
-```
-devmetrics/
-├── devmetrics-sdk/          # NPM package (published)
-├── devmetrics-backend/      # Express API (deployed on Render)
-└── devmetrics-dashboard/    # Next.js UI (deployed on Vercel)
-```
+Purpose
 
----
+/
 
-## 🛠️ Tech Stack
+Run list and Run workspace
 
-| Component | Technologies |
-|-----------|-------------|
-| **SDK** | JavaScript (ES6+), Zero dependencies |
-| **Backend** | Node.js, Express.js, MongoDB, Mongoose |
-| **Dashboard** | Next.js 15, React 19, Tailwind CSS, Recharts |
-| **Deployment** | Render (Backend), Vercel (Dashboard), NPM (SDK) |
+/tests
 
----
+Test library
 
-## 📊 What Gets Tracked?
+/tests/:id
 
-- ✅ Endpoint URLs
-- ✅ HTTP Methods (GET, POST, PUT, DELETE, etc.)
-- ✅ Status Codes (200, 404, 500, etc.)
-- ✅ Response Times (in milliseconds)
-- ✅ Timestamps
+Test builder and Run history
 
-**What's NOT tracked:**
-- ❌ Request/Response bodies
-- ❌ Headers (except method)
-- ❌ Personal information
-- ❌ Authentication tokens
+/sessions/:id
 
----
+Run report
 
-## 🔌 API Reference
+/sessions
 
-### SDK Methods
+Runs page
 
-#### `init(options)`
-Initialize the SDK.
+/compare
 
-```javascript
-init({
-  apiKey: 'dm_your_key',              // Required
-  backendUrl: 'https://...',          // Required
-  trackFetch: true,                   // Optional
-  trackAxios: false                   // Optional
-});
-```
+Compare two Runs
 
-#### `track(data)`
-Manually track an API call.
+/analytics
 
-```javascript
-await track({
-  endpoint: '/api/users',             // Required
-  method: 'GET',                      // Optional
-  status: 200,                        // Required
-  responseTime: 145,                  // Optional
-  timestamp: '2024-01-15T10:00:00Z'   // Optional
-});
-```
+Run-based analytics
 
-#### `getConfig()`
-Get current SDK configuration.
+/api-key
 
-```javascript
-const config = getConfig();
-```
+API key management
 
----
+/shared/:token
 
-## 🌐 Live Services
+Public shared Run report
 
-| Service | URL |
-|---------|-----|
-| **Dashboard** | https://dev-metrics-six.vercel.app |
-| **Backend API** | https://devmetrics-backend.onrender.com |
-| **NPM Package** | https://www.npmjs.com/package/devmetrics-sdk |
+Backend API overview
 
----
+Authentication
 
-## 🔐 Getting an API Key
+The dashboard uses an API key for protected API requests. Public shared reports use their share token and do not require the dashboard API key.
 
-API keys are managed by the DevMetrics administrator. To get a key:
+Tests
 
-1. Contact the admin
-2. Receive your key (format: `dm_[64-character-hex]`)
-3. Store it in environment variables
-4. Use it in your SDK initialization
+POST   /tests
+GET    /tests
+GET    /tests/:id
+PATCH  /tests/:id
+DELETE /tests/:id
 
-**Never commit API keys to Git!**
+POST   /tests/:testId/requests
+PATCH  /tests/:testId/requests/:requestId
+DELETE /tests/:testId/requests/:requestId
 
----
+GET    /tests/:testId/runs
+POST   /tests/:testId/runs
 
-## 🐛 Troubleshooting
+Runs
 
-### SDK not tracking?
+POST   /sessions
+GET    /sessions
+GET    /sessions/:id
+PATCH  /sessions/:id/end
+GET    /sessions/compare?a=<runA>&b=<runB>
+GET    /sessions/shared/:token
 
-1. ✅ Check `init()` is called before API calls
-2. ✅ Verify API key is correct
-3. ✅ Ensure `trackFetch: true` or `trackAxios: true`
-4. ✅ Check browser console for errors
+API keys
 
-### Dashboard showing no data?
+POST   /apikey
+GET    /apikey
+GET    /apikey/:key
+PUT    /apikey/:key
+DELETE /apikey/:key
 
-1. ✅ Wait 30 seconds for auto-refresh
-2. ✅ Verify SDK is installed and initialized
-3. ✅ Check backend health: `https://devmetrics-backend.onrender.com/health`
+DELETE /apikey/:key revokes the key by default. Passing permanent=true permanently deletes it.
 
-### Rate limit exceeded?
+Health
 
-Default limits: 10,000 req/hour, 100,000 req/day per API key.
-Contact admin to increase limits.
+GET /health
 
----
+Run states
 
-## 📈 Dashboard Features
+A Run can move through execution states such as:
 
-### Overview Page
-- 📊 Total Requests
-- ✅ Success Rate
-- ⏱️ Average Response Time
-- ❌ Error Rate
-- 📈 Request Volume Chart
-- 🥧 Status Code Distribution
-- 📊 HTTP Methods Chart
+queued → running → completed
 
-### Metrics Page
-- 🔝 Top Endpoints
-- 🐢 Slowest Endpoints
-- 📋 Complete Endpoint Statistics
+A completed Run contains its request results and any findings generated during analysis.
 
----
+Run comparison
 
-## 🚀 Local Development
+The comparison service evaluates two Runs using metrics and structural differences such as:
 
-### Backend Setup
+Average response time
 
-```bash
+Error count
+
+Request count
+
+Total duration
+
+Endpoints present only in one Run
+
+HTTP status changes
+
+New findings
+
+Resolved findings
+
+The comparison returns a verdict such as regressed, improved, unchanged, or mixed.
+
+Local development
+
+Backend
+
 cd devmetrics-backend
 npm install
-cp .env.example .env
-# Edit .env with MongoDB URI
 npm run dev
-```
 
-### Dashboard Setup
+Configure the backend environment variables required by the local database and authentication setup before starting the server.
 
-```bash
+Dashboard
+
 cd devmetrics-dashboard
 npm install
-cp .env.example .env.local
-# Edit .env.local with backend URL
 npm run dev
-```
 
-### SDK Development
+Set VITE_BACKEND_URL to the backend URL when the backend is not running at the default local address.
 
-```bash
-cd devmetrics-sdk
-npm install
-npm run dev
-```
+Production build
 
----
+cd devmetrics-dashboard
+npm run build
 
-## 🤝 Contributing
+Security
 
-Contributions are welcome! Please follow these steps:
+The backend should validate API targets before executing requests. Production deployments should enforce HTTPS where appropriate and protect API keys from being exposed in source control.
 
-1. Fork the repository
-2. Create a feature branch: `git checkout -b feature/amazing-feature`
-3. Commit your changes: `git commit -m 'Add amazing feature'`
-4. Push to branch: `git push origin feature/amazing-feature`
-5. Open a Pull Request
+Project structure
 
----
+devmetrics/
+├── devmetrics-backend/      # Express API and test execution engine
+└── devmetrics-dashboard/    # React + Vite dashboard
 
-## 📄 License
+What DevMetrics is not
 
-MIT License - see [LICENSE](LICENSE) file for details.
+DevMetrics does not use an SDK to passively intercept application traffic. It does not depend on browser instrumentation, desktop agents, or /track and /logs/metrics telemetry endpoints.
 
----
-
-## 🙏 Acknowledgments
-
-Built with:
-- [Express.js](https://expressjs.com/) - Web framework
-- [Next.js](https://nextjs.org/) - React framework
-- [MongoDB](https://www.mongodb.com/) - Database
-- [Recharts](https://recharts.org/) - Charts
-- [Tailwind CSS](https://tailwindcss.com/) - Styling
-
----
-
-## 📞 Support
-
-- 📧 Email: your.email@example.com
-- 🐛 Issues: [GitHub Issues](https://github.com/yourusername/devmetrics/issues)
-- 💬 Discussions: [GitHub Discussions](https://github.com/yourusername/devmetrics/discussions)
-
----
-
-<div align="center">
-
-**⭐ Star this repo if you find it useful!**
-
-Made with ❤️ by [Your Name]
-
-</div>
