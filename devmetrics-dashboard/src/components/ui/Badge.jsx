@@ -1,96 +1,78 @@
 function Badge({
   children,
-  variant = 'default',
-  size = 'sm',
+  variant = "default",
+  size = "sm",
   dot = false,
-  className = '',
+  className = "",
   ...props
 }) {
   const variants = {
-    default: [
-      'bg-muted',
-      'text-muted-foreground',
-    ].join(' '),
+    default: "bg-muted text-muted-foreground",
 
-    primary: [
-      'bg-primary/15',
-      'text-foreground',
-    ].join(' '),
+    primary: "bg-primary/10 text-primary",
 
-    secondary: [
-      'bg-secondary/10',
-      'text-secondary',
-    ].join(' '),
+    secondary: "bg-transparent text-secondary-foreground",
 
-    success: [
-      'bg-success/10',
-      'text-success',
-    ].join(' '),
+    success: "bg-success/10 text-success",
 
-    // Fixed: raw --info (accent cyan) as text on a light tint tests at
-    // ~1.6:1 — fails AA badly. --info-strong tests at ~5.4:1.
-    info: [
-      'bg-info/10',
-      'text-info-strong',
-    ].join(' '),
+    info: "bg-info/10 text-info-strong",
 
-    // Fixed: raw --warning as text tests at ~2.1:1 — fails AA.
-    // --warning-strong tests at ~5.0:1.
-    warning: [
-      'bg-warning/10',
-      'text-warning-strong',
-    ].join(' '),
+    warning: "bg-warning/10 text-warning-strong",
 
-    // Fixed: raw --destructive as text tests at ~3.76:1 — fails AA for
-    // normal-size text (needs 4.5:1). --destructive-strong tests at ~4.8:1.
-    destructive: [
-      'bg-destructive/10',
-      'text-destructive-strong',
-    ].join(' '),
+    destructive: "bg-destructive/10 text-destructive-strong",
 
-    outline: [
-      'border border-border',
-      'bg-background',
-      'text-muted-foreground',
-    ].join(' '),
+    outline: "border border-border bg-background text-muted-foreground",
+
+    // HTTP method identity — fixed per verb, not a severity judgement,
+    // so kept separate from the semantic status variants above.
+    get: "bg-method-get/10 text-method-get",
+    post: "bg-method-post/10 text-method-post",
+    put: "bg-method-put/10 text-method-put",
+    patch: "bg-method-patch/10 text-method-patch",
+    delete: "bg-method-delete/10 text-method-delete",
   };
 
   const sizes = {
-    xs: 'min-h-5 px-1.5 text-[9px]',
-    sm: 'min-h-6 px-2 text-micro',
-    md: 'min-h-7 px-2.5 text-xs',
+    xs: "min-h-5 px-1.5 text-[10px] leading-4",
+    sm: "min-h-6 px-2 text-xs leading-4",
+    md: "min-h-7 px-2.5 text-sm leading-5",
+  };
+
+  const dotColors = {
+    default: "bg-muted-foreground",
+    primary: "bg-primary",
+    secondary: "bg-secondary-foreground",
+    success: "bg-success",
+    info: "bg-info",
+    warning: "bg-warning",
+    destructive: "bg-destructive",
+    outline: "bg-muted-foreground",
+    get: "bg-method-get",
+    post: "bg-method-post",
+    put: "bg-method-put",
+    patch: "bg-method-patch",
+    delete: "bg-method-delete",
   };
 
   return (
     <span
       className={[
-        'inline-flex w-fit items-center gap-1.5',
-        'rounded-full font-medium',
-        sizes[size] ?? sizes.sm,
+        "inline-flex w-fit items-center gap-1.5",
+        "rounded-full font-medium whitespace-nowrap",
         variants[variant] ?? variants.default,
+        sizes[size] ?? sizes.sm,
         className,
-      ].join(' ')}
+      ]
+        .filter(Boolean)
+        .join(" ")}
       {...props}
     >
-      {/* Dot stays full-saturation brand hue (fill, not text) — it's a
-          3:1 non-text contrast requirement, not 4.5:1, and it never
-          carries meaning alone since it always sits beside the label. */}
       {dot && (
         <span
           aria-hidden="true"
-          className={[
-            'h-1.5 w-1.5 shrink-0 rounded-full',
-            variant === 'success' && 'bg-success',
-            variant === 'info' && 'bg-info',
-            variant === 'warning' && 'bg-warning',
-            variant === 'destructive' && 'bg-destructive',
-            variant === 'primary' && 'bg-primary',
-            variant === 'secondary' && 'bg-secondary',
-            variant === 'default' && 'bg-muted-foreground',
-            variant === 'outline' && 'bg-muted-foreground',
-          ]
-            .filter(Boolean)
-            .join(' ')}
+          className={`h-1.5 w-1.5 shrink-0 rounded-full ${
+            dotColors[variant] ?? dotColors.default
+          }`}
         />
       )}
 

@@ -1,16 +1,19 @@
-export default function ChartCard({ title, subtitle, children, actions }) {
+import Card, { CardHeader, CardTitle, CardDescription, CardContent } from "./ui/Card";
+
+
+export default function ChartCard({ title, subtitle, children, actions, className }) {
   return (
-    <div className="card p-6">
-      <div className="flex items-start justify-between mb-6">
+    <Card className={className}>
+      <CardHeader>
         <div>
-          <h3 className="text-base font-semibold" style={{ color: 'var(--ink-strong)' }}>{title}</h3>
-          {subtitle && (
-            <p className="text-sm mt-1" style={{ color: 'var(--ink-muted)' }}>{subtitle}</p>
-          )}
+          <CardTitle>{title}</CardTitle>
+          {subtitle && <CardDescription>{subtitle}</CardDescription>}
         </div>
+
         {actions && <div className="flex gap-2">{actions}</div>}
-      </div>
-      <div className="w-full">{children}</div>
-    </div>
+      </CardHeader>
+
+      <CardContent className="pt-0">{children}</CardContent>
+    </Card>
   );
 }
