@@ -5,7 +5,7 @@ import AuthLayout from "./components/layouts/AuthLayout";
 import Tests from "./pages/Tests";
 import Home from "./pages/Home";
 import Compare from "./pages/Compare";
-import ApiKey from "./pages/ApiKey";
+import Apikey from "./pages/Apikey";
 import Account from "./pages/Account";
 import SessionDetails from "./pages/session/RunDetails";
 import Shared from "./pages/Shared";
