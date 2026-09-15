@@ -1,231 +1,238 @@
-DevMetrics
-
-DevMetrics is a web-based API performance testing and regression analysis platform.
-
-It lets developers define reusable API tests, execute those tests against real HTTP endpoints, inspect each run, identify deterministic findings, and compare runs to detect regressions.
-
-Product workflow
-
-Tests → Test Requests → Start Run → Running → Completed → Report → Findings → Compare
-
-A Test is a reusable definition containing one or more Test Requests. A Run is one execution of a Test. Each Run stores the request results and the findings produced by the analysis service.
-
-Core features
-
-Create and manage reusable API tests.
-
-Define multiple HTTP requests inside a test.
-
-Support GET, POST, PUT, PATCH, and DELETE requests.
-
-Execute a test from the dashboard.
-
-Track Run status and request results.
-
-Inspect completed Run reports and timelines.
-
-Generate deterministic findings for request-level problems and patterns.
-
-Compare two Runs and surface regressions, improvements, and mixed changes.
-
-Share Run reports publicly through a share token.
-
-Manage DevMetrics API keys used by the dashboard and API clients.
-
-View Run-based analytics.
-
-Architecture
-
-┌─────────────────────┐
-│ DevMetrics Dashboard│
-│ React + Vite        │
-└──────────┬──────────┘
-           │ HTTP API
-           ▼
-┌─────────────────────┐
-│ DevMetrics Backend  │
-│ Node.js + Express   │
-└──────────┬──────────┘
-           │
-           ▼
-┌─────────────────────┐
-│ PostgreSQL Database │
-└─────────────────────┘
-
-The backend owns Test execution, Run creation, request execution, result persistence, finding analysis, and Run comparison. The dashboard consumes those APIs and does not depend on passive API traffic tracking.
-
-Main domain objects
-
-Test
-
-A reusable API test definition.
-
-Test Request
-
-An HTTP request belonging to a Test. It defines the method, target URL, headers, body, and related request configuration.
-
-Run
-
-One execution of a Test. Runs are stored by the backend under the existing sessions model and API namespace.
-
-Request Result
-
-The result of an individual Test Request during a Run.
-
-Finding
-
-A deterministic analysis result produced from Run request results. Findings can identify errors, error bursts, duplicate requests, retry patterns, and latency anomalies.
-
-Dashboard routes
-
-Route
-
-Purpose
-
-/
-
-Run list and Run workspace
-
-/tests
-
-Test library
-
-/tests/:id
-
-Test builder and Run history
-
-/sessions/:id
-
-Run report
-
-/sessions
-
-Runs page
-
-/compare
-
-Compare two Runs
-
-/analytics
-
-Run-based analytics
-
-/api-key
-
-API key management
-
-/shared/:token
-
-Public shared Run report
-
-Backend API overview
-
-Authentication
-
-The dashboard uses an API key for protected API requests. Public shared reports use their share token and do not require the dashboard API key.
-
-Tests
-
-POST   /tests
-GET    /tests
-GET    /tests/:id
-PATCH  /tests/:id
-DELETE /tests/:id
-
-POST   /tests/:testId/requests
-PATCH  /tests/:testId/requests/:requestId
-DELETE /tests/:testId/requests/:requestId
-
-GET    /tests/:testId/runs
-POST   /tests/:testId/runs
-
-Runs
-
-POST   /sessions
-GET    /sessions
-GET    /sessions/:id
-PATCH  /sessions/:id/end
-GET    /sessions/compare?a=<runA>&b=<runB>
-GET    /sessions/shared/:token
-
-API keys
-
-POST   /apikey
-GET    /apikey
-GET    /apikey/:key
-PUT    /apikey/:key
-DELETE /apikey/:key
-
-DELETE /apikey/:key revokes the key by default. Passing permanent=true permanently deletes it.
-
-Health
-
-GET /health
-
-Run states
-
-A Run can move through execution states such as:
-
-queued → running → completed
-
-A completed Run contains its request results and any findings generated during analysis.
-
-Run comparison
-
-The comparison service evaluates two Runs using metrics and structural differences such as:
-
-Average response time
-
-Error count
-
-Request count
-
-Total duration
-
-Endpoints present only in one Run
-
-HTTP status changes
-
-New findings
-
-Resolved findings
-
-The comparison returns a verdict such as regressed, improved, unchanged, or mixed.
-
-Local development
-
-Backend
-
+# DevMetrics
+
+A self-hosted API testing and regression-analysis platform. Define reusable HTTP test suites, execute them against real endpoints, get deterministic findings on each run, diff two runs for regressions, and share a run publicly via a token link.
+
+## Features
+
+- **Reusable Tests** — save an ordered set of HTTP requests (method, URL, headers, body, timeout, expected status) once, run it repeatedly.
+- **Live Runs** — trigger a Test and watch execution progress in real time.
+- **Automatic findings** — every run is analyzed for errors, error bursts, duplicate requests, retry patterns, latency anomalies, and failed assertions, each graded by severity.
+- **Run comparison** — diff two runs to see what changed.
+- **Public sharing** — share a completed run via a read-only link, no account required to view.
+- **Multi-tenant** — each account gets an isolated, auto-provisioned API key.
+
+**Repo layout:** monorepo — `devmetrics-dashboard` (frontend), `devmetrics-backend` (API + run engine), root-level integration tests.
+
+```
+DevMetrics/
+├── devmetrics-dashboard/   React + Vite frontend
+├── devmetrics-backend/     Node/Express API + test-run engine
+├── package.json             root-level Jest/Playwright integration tests
+└── vercel.json               frontend deploy config
+```
+
+---
+
+## Architecture
+
+```
+┌────────────────────────┐
+│  devmetrics-dashboard  │  React 19 + Vite, Supabase auth
+└───────────┬────────────┘
+            │ HTTPS (x-api-key)
+            ▼
+┌────────────────────────┐
+│   devmetrics-backend   │  Express, custom HTTP test-run engine
+└───────────┬────────────┘
+            │ pg (raw SQL, no ORM)
+            ▼
+┌────────────────────────┐
+│  PostgreSQL (Supabase) │
+└────────────────────────┘
+```
+
+The backend owns test execution, run lifecycle, finding analysis, and run comparison. The dashboard is a thin client over that API — it never talks to Postgres or executes requests itself.
+
+## Core workflow
+
+```
+Sign up (Supabase) → API key auto-provisioned
+        │
+        ▼
+Create a Test (name + ordered HTTP requests: method, URL, headers, body, timeout, expected status)
+        │
+        ▼
+Run it → backend executes each request server-side → queued → running → analyzing → completed/failed/cancelled
+        │
+        ▼
+Run Detail: per-request results + severity-graded findings
+        │
+   ┌────┴─────┐
+   ▼          ▼
+Compare      Share (public token link)
+(two runs)
+```
+
+---
+
+## Frontend — `devmetrics-dashboard`
+
+**Stack:** React 19, Vite, React Router v7, Tailwind CSS v4, Supabase JS, Axios, Recharts, lucide-react. No TypeScript.
+
+```
+src/
+  pages/        route screens (Tests, TestDetails, Home, Sessiondetails, Compare, Api-key, Shared, auth/)
+  layouts/       AuthLayout — shell, bootstraps the per-user API key on first load
+  components/    Sidebar, Navbar, RunRow, TestRow, MetricCard, ChartCard, ...
+  components/ui/ Button, Badge, Card, Form, EmptyState, ErrorState, Pagination, Skeleton
+  lib/           api.js, auth.js, projects.js, tests.js, runs.js, apiKeys.js, utils.js
+  hooks/         useFetch, useTestEditor, useRunDetails
+```
+
+### Routes
+
+| Route | Shell | Auth |
+|---|---|---|
+| `/login`, `/signup` | No | No |
+| `/`, `/tests` | Yes | Yes |
+| `/tests/:id` | Yes | Yes |
+| `/sessions` | Yes | Yes |
+| `/sessions/:id` | Yes | Yes |
+| `/compare` | Yes | Yes |
+| `/api-key` | Yes | Yes |
+| `/shared/:token` | No | No |
+
+### Setup
+
+```bash
+cd devmetrics-dashboard
+npm install
+```
+
+`.env`:
+```
+VITE_BACKEND_URL=http://localhost:5000
+VITE_SUPABASE_URL=your-supabase-project-url
+VITE_SUPABASE_ANON_KEY=your-supabase-anon-key
+```
+
+```bash
+npm run dev
+```
+
+### Design system — Graphite Mono
+
+Near-monochrome, light-only. Color is reserved exclusively for semantic status (destructive/warning/success/info). HTTP method chips are bold monospace text on a flat neutral chip, not color-coded — a deliberate break from Postman's convention. Status colors always come from `Badge` variants, never hardcoded per component.
+
+---
+
+## Backend — `devmetrics-backend`
+
+**Stack:** Node.js (ESM) + Express, `pg` (raw SQL, no ORM), PostgreSQL hosted on Supabase, `@supabase/supabase-js`.
+
+```
+app.js            entry point, route mounting, health check
+config/            db.js (pg Pool + transaction helper), bootstrap.js (env loading)
+routes/            apiKey.js, auth.js, projects.js, sessions.js, tests.js
+controllers/        one per resource, plus testRunController (run execution)
+models/             ApiKey, Project, Test, TestRequest, Session, RunFinding, Request — thin classes wrapping parameterized SQL
+services/           testRunner.js (execution engine), analysis.js (finding detection), compare.js (run diffing)
+middleware/auth.js   validateApiKey, validateAdminKey, validateDashboardAccess
+scripts/             setup.js (base schema) + incremental migrations
+```
+
+### API endpoints
+
+| Method | Path | Auth |
+|---|---|---|
+| `POST` | `/auth/register` | — |
+| `GET` | `/auth/api-key/:userId` | — |
+| `POST` `GET` `PATCH` `DELETE` | `/projects`, `/projects/:id` | `x-api-key` |
+| `GET` | `/projects/:projectId/tests` | `x-api-key` |
+| `POST` `GET` `PATCH` `DELETE` | `/tests`, `/tests/:id` | `x-api-key` |
+| `POST` `PATCH` `DELETE` | `/tests/:testId/requests(/:requestId)` | `x-api-key` |
+| `POST` | `/tests/:testId/runs` | `x-api-key` — starts a real run |
+| `GET` | `/tests/:testId/runs` | `x-api-key` — run history |
+| `POST` | `/sessions` | `x-api-key` |
+| `PATCH` | `/sessions/:id/end` | `x-api-key` |
+| `GET` | `/sessions`, `/sessions/:id` | `x-api-key` |
+| `GET` | `/sessions/compare?a=&b=` | `x-api-key` |
+| `GET` | `/sessions/shared/:token` | **public**, scoped by share token |
+| `POST` `GET` `PUT` `DELETE` | `/apikey(/:key)` | `x-admin-key` |
+| `GET` | `/health` | — |
+
+### Run execution engine
+
+`services/testRunner.js` executes each Test's requests with a custom Node `http`/`https` client, with SSRF protections built in:
+
+- blocks requests to private/loopback/link-local IP ranges (resolves DNS first, checks the resolved address)
+- caps response size, redirects, header count/value length, and per-request timeout
+
+Each request's result is persisted, then `services/analysis.js` runs rule-based detection over the run:
+
+| Finding type | Rule |
+|---|---|
+| `error` | any 4xx/5xx per endpoint (critical if any 5xx) |
+| `error_burst` | multiple errors within a short rolling window |
+| `duplicate_request` | many identical requests within a short window |
+| `retry_pattern` | repeated calls to the same endpoint in quick succession |
+| `latency_anomaly` | response time statistically above that endpoint's mean |
+| `assertion_failure` | actual status doesn't match the test request's expected status |
+
+`services/compare.js` summarizes two sessions (request count, error count, avg response time, per-endpoint breakdown) for the Compare screen.
+
+### Setup
+
+```bash
 cd devmetrics-backend
 npm install
+```
+
+`.env`:
+```
+DATABASE_URL=postgresql://...            # or DB_HOST/DB_PORT/DB_USER/DB_PASSWORD/DB_NAME
+ADMIN_KEY=...                             # gates /apikey admin routes
+NODE_ENV=development
+PORT=5000
+```
+
+```bash
+npm run setup              # base schema
+npm run migrate:sessions   # tests/sessions/findings tables
+npm run seed                # seed a dev API key
 npm run dev
+```
 
-Configure the backend environment variables required by the local database and authentication setup before starting the server.
+---
 
-Dashboard
+## Database — PostgreSQL (Supabase-hosted)
 
-cd devmetrics-dashboard
-npm install
-npm run dev
+No ORM — every model is a thin class over parameterized `pg` queries.
 
-Set VITE_BACKEND_URL to the backend URL when the backend is not running at the default local address.
+| Table | Purpose |
+|---|---|
+| `api_keys` | one row per provisioned key (per-user or admin-issued) |
+| `projects` | optional grouping for tests |
+| `tests` | reusable test definitions |
+| `test_requests` | ordered HTTP requests inside a test |
+| `sessions` | a Run — internal table name predates the product's "Run" terminology |
+| `run_findings` | analysis output per run, with severity |
+| `requests` | individual request results per run |
 
-Production build
+Notes:
+- `sessions.run_status` is constrained to `queued / running / analyzing / completed / failed / cancelled`.
+- Every run gets a public share token by default, enabling the read-only share link.
+- Foreign keys cascade on delete (`tests → test_requests`, `sessions → run_findings`).
 
-cd devmetrics-dashboard
-npm run build
+---
 
-Security
+## Getting started
 
-The backend should validate API targets before executing requests. Production deployments should enforce HTTPS where appropriate and protect API keys from being exposed in source control.
+```bash
+git clone https://github.com/developer8HARSHAL/DevMetrics.git
+cd DevMetrics
 
-Project structure
+cd devmetrics-backend && npm install && npm run setup && npm run seed && npm run dev
+# in a second terminal
+cd devmetrics-dashboard && npm install && npm run dev
+```
 
-devmetrics/
-├── devmetrics-backend/      # Express API and test execution engine
-└── devmetrics-dashboard/    # React + Vite dashboard
+## Roadmap
 
-What DevMetrics is not
+- Global 401/403 handling on the frontend (session expiry, revoked keys currently fail per-screen).
+- Modal/Dialog and Toast primitives — several flows use inline patterns as an interim solution.
+- Compare view: richer per-endpoint diffing UI.
 
-DevMetrics does not use an SDK to passively intercept application traffic. It does not depend on browser instrumentation, desktop agents, or /track and /logs/metrics telemetry endpoints.
+## Contributing
 
+Issues and PRs are welcome. Please open an issue before starting significant work.
