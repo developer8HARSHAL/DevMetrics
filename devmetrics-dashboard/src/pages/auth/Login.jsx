@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Activity, GitCompareArrows, BarChart3, Terminal } from "lucide-react";
-import { supabase, getUserApiKey, setApiKey } from "../../lib/auth";
+import { supabase, setApiKey } from "../../lib/auth";
+import { getUserApiKey } from "../../lib/apiKeys";
 import Button from "../../components/ui/Button";
 
 const FEATURES = [

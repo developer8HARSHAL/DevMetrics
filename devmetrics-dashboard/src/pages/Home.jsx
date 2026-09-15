@@ -1,165 +1,241 @@
-import { useMemo, useState } from "react";
-import { Activity, Plus, Radio } from "lucide-react";
-import { createRun, fetchRuns } from "../lib/runs";
+import { useState } from "react";
+import { Activity } from "lucide-react";
+import { Link } from "react-router-dom";
+
+import {
+  fetchRuns,
+  sortRuns,
+} from "../lib/runs";
+import {
+  formatDuration,
+  formatRelativeTime,
+} from "../lib/formatters";
 import { useFetch } from "../hooks/useFetch";
-import RunRow from "../components/RunRow";
-import Button from "../components/ui/Button";
-import Card from "../components/ui/Card";
-import SectionHeader from "../components/ui/SectionHeader";
-import EmptyState from "../components/ui/EmptyState";
-import ErrorState from "../components/ui/ErrorState";
-import Skeleton from "../components/ui/Skeleton";
-import { cn } from "../lib/utils";
+import { cn, toNumber } from "../lib/utils";
 
-const SEVERITIES = ["critical", "warning", "info"];
+import Badge from "../components/ui/Badge";
+import ChartCard from "../components/ChartCard";
+import {
+  Button,
+  EmptyState,
+  ErrorState,
+  Pagination,
+  Skeleton,
+} from "../components/ui";
 
-function RunsSkeleton() {
-  return (
-    <Card className="overflow-hidden p-0">
-      <div className="space-y-0 divide-y divide-border">
-        {[1, 2, 3, 4].map((i) => (
-          <div key={i} className="flex items-center gap-4 px-6 py-5">
-            <div className="flex-1 space-y-2">
-              <Skeleton className="h-4 w-48" />
-              <Skeleton className="h-3 w-32" />
-            </div>
-            <Skeleton className="hidden h-6 w-16 md:block" />
-          </div>
-        ))}
-      </div>
-    </Card>
-  );
+const PAGE_SIZE = 12;
+const SKELETON_CARDS = 6;
+
+const SEVERITY_VARIANT = {
+  critical: "destructive",
+  warning: "warning",
+  info: "info",
+};
+
+function isActive(run) {
+  const status =
+    run.run_status || (run.ended_at ? "completed" : "running");
+
+  return ["queued", "running", "analyzing"].includes(status);
+}
+
+function outcomeTone(run, active) {
+  if (active) return null;
+
+  if (
+    toNumber(run.error_count) > 0 ||
+    run.highest_severity === "critical"
+  ) {
+    return "destructive";
+  }
+
+  if (run.highest_severity === "warning") {
+    return "warning";
+  }
+
+  return null;
 }
 
 export default function Home() {
+  const [page, setPage] = useState(1);
+
   const { data, loading, error, refetch } = useFetch(fetchRuns);
-  const [severity, setSeverity] = useState("all");
-  const [starting, setStarting] = useState(false);
 
-  const runs = useMemo(() => {
-    const list = data?.data || [];
-    return [...list]
-      .filter((run) => severity === "all" || run.highest_severity === severity)
-      .sort((a, b) => {
-        const aActive = a.ended_at == null;
-        const bActive = b.ended_at == null;
-        if (aActive !== bActive) return aActive ? -1 : 1;
-        return new Date(b.started_at) - new Date(a.started_at);
-      });
-  }, [data, severity]);
+  const runs = sortRuns(
+    Array.isArray(data) ? data : data?.runs || [],
+    "newest"
+  );
 
-  const stats = useMemo(() => {
-    const list = data?.data || [];
-    return {
-      total: list.length,
-      live: list.filter((r) => r.ended_at == null).length,
-      critical: list.filter((r) => r.highest_severity === "critical").length,
-    };
-  }, [data]);
-
-  async function startRun() {
-    setStarting(true);
-    try {
-      await createRun();
-      await refetch();
-    } finally {
-      setStarting(false);
-    }
-  }
-
-  const totalRuns = data?.data?.length || 0;
+  const total = runs.length;
+  const pageRuns = runs.slice(
+    (page - 1) * PAGE_SIZE,
+    page * PAGE_SIZE
+  );
 
   return (
-    <div className="space-y-6">
-      <SectionHeader
-        eyebrow="Runs"
-        title="Application runs"
-        description="Recorded behavior and detected findings from your local sessions."
-        actions={
-          <Button onClick={startRun} loading={starting} leftIcon={<Plus size={16} />}>
-            Start run
-          </Button>
-          
-        }
-      />
-
-      {!loading && !error && totalRuns > 0 && (
-        <div className="grid gap-3 sm:grid-cols-3">
-          <div className="dm-stat-tile">
-            <p className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground">Total runs</p>
-            <p className="mt-1 font-data text-2xl font-semibold">{stats.total}</p>
-          </div>
-          <div className="dm-stat-tile">
-            <p className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground">Live now</p>
-            <p className="mt-1 flex items-center gap-2 font-data text-2xl font-semibold text-primary">
-              {stats.live}
-              {stats.live > 0 && <Radio size={16} className="animate-pulse" />}
-            </p>
-          </div>
-          <div className="dm-stat-tile">
-            <p className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground">Critical</p>
-            <p className={cn("mt-1 font-data text-2xl font-semibold", stats.critical > 0 && "text-destructive-strong")}>
-              {stats.critical}
-            </p>
-          </div>
+    <ChartCard
+      title="Runs"
+      subtitle="Every execution across all your tests."
+    >
+      {error ? (
+        <ErrorState description={error} onRetry={refetch} />
+      ) : loading ? (
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">
+          {Array.from({ length: SKELETON_CARDS }).map((_, index) => (
+            <Skeleton
+              key={index}
+              className="h-36 rounded-md"
+            />
+          ))}
         </div>
-      )}
-
-      <Card className="p-4 md:p-5">
-        <div className="flex flex-wrap items-center justify-between gap-4">
-          <span className="font-data text-micro text-muted-foreground">
-            Showing {runs.length} of {totalRuns} {totalRuns === 1 ? "run" : "runs"}
-          </span>
-          <div className="flex flex-wrap items-center gap-1.5">
-            {["all", ...SEVERITIES].map((value) => (
-              <button
-                key={value}
-                type="button"
-                aria-pressed={severity === value}
-                onClick={() => setSeverity(value)}
-                className="dm-filter-chip"
-              >
-                {value === "all" ? "All" : value}
-              </button>
-            ))}
-          </div>
-        </div>
-      </Card>
-
-      {loading && <RunsSkeleton />}
-      {error && <ErrorState description={error} onRetry={refetch} />}
-
-      {!loading && !error && !runs.length && (
+      ) : total === 0 ? (
         <EmptyState
           icon={Activity}
-          title={totalRuns ? "No matching runs" : "No runs yet"}
-          description={
-            totalRuns
-              ? "Try a different severity filter."
-              : "Start a run to begin recording application behavior."
+          title="No runs yet"
+          description="Runs are started from a test's editor — go to Tests to run one."
+          action={
+            <Link to="/tests">
+              <Button>Go to Tests</Button>
+            </Link>
           }
-          action={!totalRuns && <Button onClick={startRun} loading={starting}>Start your first run</Button>}
         />
-      )}
+      ) : (
+        <div className="space-y-4">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">
+            {pageRuns.map((run) => {
+              const active = isActive(run);
+              const tone = outcomeTone(run, active);
+              const requests = toNumber(run.request_count);
+              const errors = toNumber(run.error_count);
+              const findings = toNumber(run.finding_count);
 
-      {!loading && !error && runs.length > 0 && (
-        <Card className="overflow-hidden p-0 shadow-sm">
-          <div className="hidden border-b border-border bg-muted/30 px-6 py-3 font-data text-micro uppercase tracking-wider text-muted-foreground md:grid md:grid-cols-[minmax(220px,1fr)_72px_64px_96px_96px_88px_20px] md:gap-4">
-            <span>Run</span>
-            <span className="text-right">Requests</span>
-            <span className="text-right">Errors</span>
-            <span className="text-right">Severity</span>
-            <span className="text-right">Findings</span>
-            <span className="text-right">Status</span>
-            <span />
+              const findingVariant =
+                findings > 0
+                  ? SEVERITY_VARIANT[run.highest_severity] ||
+                    "warning"
+                  : "default";
+
+              return (
+                <Link
+                  key={run.id}
+                  to={`/sessions/${run.id}`}
+                  className={cn(
+                    "group flex flex-col gap-3.5 rounded-md border border-border p-4",
+                    "transition-colors duration-normal ease-standard hover:bg-surface-1/70",
+                    tone === "destructive"
+                      ? "bg-destructive/5"
+                      : tone === "warning"
+                        ? "bg-warning/5"
+                        : "bg-card"
+                  )}
+                >
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0">
+                      <p className="truncate text-sm font-medium text-foreground">
+                        {run.name || "Untitled run"}
+                      </p>
+
+                      <p className="mt-1 truncate font-data text-micro text-muted-foreground">
+                        {run.hostname || "Unknown host"} ·{" "}
+                        {formatRelativeTime(run.started_at)}
+                      </p>
+                    </div>
+
+                    <Badge
+                      variant={active ? "primary" : "outline"}
+                      size="xs"
+                    >
+                      <span
+                        aria-hidden="true"
+                        className={cn(
+                          "h-1.5 w-1.5 rounded-full",
+                          active
+                            ? "animate-pulse bg-primary"
+                            : "bg-muted-foreground"
+                        )}
+                      />
+                      {active ? "Live" : "Ended"}
+                    </Badge>
+                  </div>
+
+                  <div className="grid grid-cols-3 gap-2 border-t border-border pt-3.5">
+                    <div>
+                      <p className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
+                        Requests
+                      </p>
+
+                      <p className="mt-1 font-data text-sm font-medium text-foreground">
+                        {requests}
+                      </p>
+                    </div>
+
+                    <div>
+                      <p className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
+                        Errors
+                      </p>
+
+                      <Badge
+                        variant={
+                          errors > 0
+                            ? "destructive"
+                            : "default"
+                        }
+                        size="sm"
+                        className="mt-1 font-data"
+                      >
+                        {errors}
+                      </Badge>
+                    </div>
+
+                    <div>
+                      <p className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
+                        Findings
+                      </p>
+
+                      <Badge
+                        variant={findingVariant}
+                        size="sm"
+                        className="mt-1 font-data"
+                      >
+                        {findings}
+                      </Badge>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center justify-between font-data text-micro text-muted-foreground">
+                    <span>
+                      {active
+                        ? "Running..."
+                        : formatDuration(run.duration_ms) || "—"}
+                    </span>
+
+                    {!active && run.highest_severity && (
+                      <Badge
+                        variant={
+                          SEVERITY_VARIANT[run.highest_severity] ||
+                          "outline"
+                        }
+                        size="xs"
+                      >
+                        {run.highest_severity}
+                      </Badge>
+                    )}
+                  </div>
+                </Link>
+              );
+            })}
           </div>
-          <ul>
-            {runs.map((run) => (
-              <RunRow key={run.id} run={run} />
-            ))}
-          </ul>
-        </Card>
+
+          <div className="rounded-md border border-border">
+            <Pagination
+              page={page}
+              pageSize={PAGE_SIZE}
+              total={total}
+              onPageChange={setPage}
+            />
+          </div>
+        </div>
       )}
-    </div>
+    </ChartCard>
   );
 }

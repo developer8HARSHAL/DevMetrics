@@ -1,97 +1,46 @@
 import api from "./api";
-import { getApiKey } from "./auth";
-
-function authHeaders() {
-  const apiKey = getApiKey();
-
-  return apiKey
-    ? {
-        "x-api-key": apiKey,
-      }
-    : {};
-}
 
 export const fetchTests = () =>
-  api.get("/tests", {
-    headers: authHeaders(),
-  });
+  api.get("/tests");
 
 export const fetchTest = (id) =>
-  api.get(`/tests/${encodeURIComponent(id)}`, {
-    headers: authHeaders(),
+  api.get(`/tests/${encodeURIComponent(id)}`);
+
+export const createTest = ({ name, description = "", projectId }) =>
+  api.post("/tests", {
+    name,
+    description,
+    projectId,
   });
 
-export const createTest = ({ name, description = "" }) =>
-  api.post(
-    "/tests",
-    {
-      name,
-      description,
-    },
-    {
-      headers: authHeaders(),
-    }
-  );
-
 export const updateTest = (id, payload) =>
-  api.patch(
-    `/tests/${encodeURIComponent(id)}`,
-    payload,
-    {
-      headers: authHeaders(),
-    }
-  );
+  api.patch(`/tests/${encodeURIComponent(id)}`, payload);
 
 export const deleteTest = (id) =>
-  api.delete(
-    `/tests/${encodeURIComponent(id)}`,
-    {
-      headers: authHeaders(),
-    }
-  );
+  api.delete(`/tests/${encodeURIComponent(id)}`);
 
 export const createTestRequest = (testId, payload) =>
   api.post(
     `/tests/${encodeURIComponent(testId)}/requests`,
-    payload,
-    {
-      headers: authHeaders(),
-    }
+    payload
   );
 
-export const updateTestRequest = (
-  testId,
-  requestId,
-  payload
-) =>
+export const updateTestRequest = (testId, requestId, payload) =>
   api.patch(
     `/tests/${encodeURIComponent(testId)}/requests/${encodeURIComponent(requestId)}`,
-    payload,
-    {
-      headers: authHeaders(),
-    }
+    payload
   );
 
-export const deleteTestRequest = (
-  testId,
-  requestId
-) =>
+export const deleteTestRequest = (testId, requestId) =>
   api.delete(
-    `/tests/${encodeURIComponent(testId)}/requests/${encodeURIComponent(requestId)}`,
-    {
-      headers: authHeaders(),
-    }
+    `/tests/${encodeURIComponent(testId)}/requests/${encodeURIComponent(requestId)}`
   );
 
-  export async function fetchTestRuns(testId) {
-  return api.get(`/tests/${testId}/runs`);
-}
+export const fetchTestRuns = (testId) =>
+  api.get(`/tests/${encodeURIComponent(testId)}/runs`);
 
-export async function runTest(testId) {
-  const apiKey = getApiKey();
-  if (!apiKey) throw new Error("API key not configured");
-  const response = await api.post(`/tests/${encodeURIComponent(testId)}/runs`, {}, {
-    headers: { "x-api-key": apiKey }
-  });
-  return response.data.data;
-}
+export const runTest = (testId) =>
+  api.post(
+    `/tests/${encodeURIComponent(testId)}/runs`,
+    {}
+  );

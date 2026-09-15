@@ -9,7 +9,7 @@ import apiKeyRoutes from "./routes/apiKey.js";
 import authRoutes from "./routes/auth.js";
 import sessionRoutes from "./routes/sessions.js";
 import testRoutes from "./routes/tests.js";
-
+import projectRoutes from "./routes/projects.js";
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -26,6 +26,8 @@ app.use("/auth", authRoutes);
 app.use("/apikey", apiKeyRoutes);
 app.use("/sessions", sessionRoutes);
 app.use("/tests", testRoutes);
+app.use("/projects", projectRoutes);
+
 
 app.get("/", (req, res) => {
   res.json({

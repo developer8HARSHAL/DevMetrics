@@ -1,127 +1,127 @@
-/* ============================================================================
-   DevMetrics — Global Stylesheet
-   Single source of truth for design tokens. No raw hex or arbitrary Tailwind
-   utility colors should appear in components — reference these tokens only.
-
-   ASSUMPTIONS (flag/correct if wrong):
-   1. Tailwind v4 — no tailwind.config.js was in your file tree, and v4's
-      CSS-first config (@theme) doesn't need one. If you're actually on v3,
-      this needs a different shape (@tailwind directives + JS config)  —
-      tell me and I'll rewrite it.
-   2. Dark-mode is class-based (`.dark` on <html>), toggled by a component
-      like your ThemeToggle. Adjust the @custom-variant line below if you're
-      using next-themes' data-attribute strategy instead.
-   3. IBM Plex Sans (UI) + IBM Plex Mono (data: endpoints, status codes,
-      timestamps) loaded via next/font in layout.js, exposing
-      --font-sans / --font-mono. I have not touched layout.js — say the word
-      and I'll wire that up next.
-   4. Dark-theme values below are proposed, not confirmed — you only gave me
-      the light palette. Review before shipping.
-
-   ============================================================================ */
-
 @import "tailwindcss";
 
 @custom-variant dark (&:is(.dark *));
 
-/* ----------------------------------------------------------------------------
-   1. TOKENS — Light theme (default)
-   ---------------------------------------------------------------------------- */
 :root {
-  /* --- Surfaces --- */
-  --background: #fbfcf8;
-  --foreground: #0f1512;
+ 
+
+  --background: #fcfcfb;
+  --foreground: #24242a;
+
   --card: #ffffff;
-  --card-foreground: #0f1512;
+  --card-foreground: #24242a;
+
   --popover: #ffffff;
-  --popover-foreground: #0f1512;
-  --muted: #f1f5f9;
-  --muted-foreground: #64748b;
-  --border: #e2e8f0;
-  --input: #e2e8f0;
+  --popover-foreground: #24242a;
 
-  /* --- Brand --- */
-  /* Both primary and accent are high-luminance colors (contrast ratio to
-     white < 1.4:1) — they can only ever carry a DARK foreground, never
-     white. --secondary is reused as that foreground: it tests at 7.7:1
-     (primary) and 6.4:1 (accent), so it's the natural pairing rather than
-     inventing a separate near-black. */
-  --primary: #aff33e;
-  --primary-foreground: #1a2216;
-  --secondary: #334155;
-  --secondary-foreground: #ffffff;
-  --accent: #0fdff4;
-  --accent-foreground: #0a2e33;
+  --muted: #f4f4f3;
+  --muted-foreground: #71717a;
 
-  /* --- Status / severity ---
-     Findings (critical/warning/info) and Compare Verdicts
-     (improved/regressed/unchanged/mixed) both key off this set. */
-  --destructive: #ef4444;               /* badges, borders, icons, subtle fills */
-  --destructive-strong: #dc2626;        /* text/solid-fill use — #ef4444 tests at
-                                            3.76:1 on white, fails AA for text */
+  --surface-1: #fafaf9;
+  --surface-2: #f4f4f3;
+  --surface-3: #ececea;
+
+
+  --border: #e7e7e4;
+  --border-muted: #f0f0ee;
+  --border-strong: #d4d4d0;
+  --input: #d4d4d0;
+
+  --brand: #18181b;
+  --brand-foreground: #fafaf9;
+
+  --primary: #18181b;
+  --primary-foreground: #fafaf9;
+
+  --secondary: #f4f4f3;
+  --secondary-foreground: #24242a;
+
+  --accent: #f4f4f3;
+  --accent-foreground: #24242a;
+
+  --destructive: #dc2626;
+  --destructive-strong: #b91c1c;
   --destructive-foreground: #ffffff;
 
-  --warning: #f59e0b;
-  --warning-strong: #b45309;            /* text use on light tints — raw #f59e0b
-                                            tests at 2.1:1, fails badly */
-  --warning-foreground: #1a2216;        /* white-on-amber fails AA (2.1:1);
-                                            dark text passes at 4.8:1 */
+  --warning: #d97706;
+  --warning-strong: #b45309;
+  --warning-foreground: #ffffff;
 
-  --success: #15803d;                   /* distinct hue from --primary on purpose —
-                                            lime already means "brand", not "good" */
+  --success: #16a34a;
+  --success-strong: #15803d;
   --success-foreground: #ffffff;
 
-  --info: var(--accent);
-  --info-strong: #0e7490;               /* text use — raw accent cyan on white
-                                            tests at ~1.6:1 */
-  --info-foreground: var(--accent-foreground);
+  --info: #2563eb;
+  --info-strong: #1d4ed8;
+  --info-foreground: #ffffff;
 
-  --ring: #aff33e;
+  --mixed: #9333ea;
+  --mixed-foreground: #ffffff;
 
-  /* Card "muted" variant surface — one step between --card and --muted.
-     Wasn't in your original palette; proposed value, review it. */
-  --surface-1: #f6f8f3;
+ 
+  --method-get: #16a34a;
+  --method-post: #d97706;
+  --method-put: #2563eb;
+  --method-patch: #9333ea;
+  --method-delete: #dc2626;
 
-  /* Named motion pair used by the interactive Card variant */
+  --ring: #18181b;
+
+
+  --duration-fast: 150ms;
   --duration-normal: 200ms;
+  --duration-slow: 300ms;
+
   --ease-standard: cubic-bezier(0.2, 0, 0, 1);
 
-  /* --- Charts / data viz (extend as needed, keep to this set) --- */
-  --chart-1: var(--primary);
-  --chart-2: var(--accent);
-  --chart-3: var(--secondary);
-  --chart-4: var(--warning);
-  --chart-5: var(--muted-foreground);
 
   --radius: 0.5rem;
+
+
+  --chart-1: var(--foreground);
+  --chart-2: var(--info);
+  --chart-3: var(--success);
+  --chart-4: var(--warning);
+  --chart-5: var(--destructive);
 }
 
-/* ----------------------------------------------------------------------------
-   2. TOKENS — Dark theme (proposed — not yet confirmed against real product)
-   ---------------------------------------------------------------------------- */
 .dark {
-  --background: #0b0f14;
-  --foreground: #f1f5f9;
-  --card: #121820;
-  --card-foreground: #f1f5f9;
-  --popover: #121820;
-  --popover-foreground: #f1f5f9;
-  --muted: #1a222c;
-  --muted-foreground: #94a3b8;
-  --border: #263140;
-  --input: #263140;
 
-  --primary: #aff33e;
-  --primary-foreground: #14210d;
-  --secondary: #cbd5e1;
-  --secondary-foreground: #0f1512;
-  --accent: #0fdff4;
-  --accent-foreground: #062226;
+  --background: #18181b;
+  --foreground: #fafaf9;
+
+  --card: #202023;
+  --card-foreground: #fafaf9;
+
+  --popover: #202023;
+  --popover-foreground: #fafaf9;
+
+  --muted: #27272a;
+  --muted-foreground: #a1a1aa;
+
+  --surface-1: #202023;
+  --surface-2: #27272a;
+  --surface-3: #2f2f33;
+
+  --border: #2f2f33;
+  --border-muted: #27272a;
+  --border-strong: #3f3f46;
+  --input: #2f2f33;
+
+  --brand: #fafaf9;
+  --brand-foreground: #18181b;
+
+  --primary: #fafaf9;
+  --primary-foreground: #18181b;
+
+  --secondary: #27272a;
+  --secondary-foreground: #fafaf9;
+
+  --accent: #27272a;
+  --accent-foreground: #fafaf9;
 
   --destructive: #f87171;
-  --destructive-strong: #f87171;        /* on a dark card, the base hue itself
-                                            already clears AA as text — no need
-                                            to darken further like the light theme */
+  --destructive-strong: #f87171;
   --destructive-foreground: #1a0505;
 
   --warning: #fbbf24;
@@ -129,108 +129,205 @@
   --warning-foreground: #1a1206;
 
   --success: #4ade80;
+  --success-strong: #4ade80;
   --success-foreground: #052e13;
 
-  --info: var(--accent);
-  --info-strong: var(--accent);
-  --info-foreground: var(--accent-foreground);
+  --info: #60a5fa;
+  --info-strong: #60a5fa;
+  --info-foreground: #0c1e3d;
 
-  --ring: #aff33e;
+  --mixed: #c084fc;
+  --mixed-foreground: #2e1065;
 
-  --surface-1: #161d26;
+  --method-get: #4ade80;
+  --method-post: #fbbf24;
+  --method-put: #60a5fa;
+  --method-patch: #c084fc;
+  --method-delete: #f87171;
 
+  --ring: #d4d4d8;
+
+  --duration-fast: 150ms;
   --duration-normal: 200ms;
+  --duration-slow: 300ms;
+
   --ease-standard: cubic-bezier(0.2, 0, 0, 1);
 
-  --chart-1: var(--primary);
-  --chart-2: var(--accent);
-  --chart-3: var(--secondary);
+  --radius: 0.5rem;
+
+  --chart-1: var(--foreground);
+  --chart-2: var(--info);
+  --chart-3: var(--success);
   --chart-4: var(--warning);
-  --chart-5: var(--muted-foreground);
+  --chart-5: var(--destructive);
 }
 
 /* ----------------------------------------------------------------------------
-   3. Tailwind theme mapping — makes tokens usable as bg-background,
-      text-foreground, border-border, bg-destructive-strong, etc.
+   3. Tailwind v4 semantic mapping
    ---------------------------------------------------------------------------- */
+
 @theme inline {
+  /* Surfaces */
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+
   --color-card: var(--card);
   --color-card-foreground: var(--card-foreground);
+
   --color-popover: var(--popover);
   --color-popover-foreground: var(--popover-foreground);
+
   --color-muted: var(--muted);
   --color-muted-foreground: var(--muted-foreground);
+
+  --color-surface-1: var(--surface-1);
+  --color-surface-2: var(--surface-2);
+  --color-surface-3: var(--surface-3);
+
+  /* Borders */
   --color-border: var(--border);
+  --color-border-muted: var(--border-muted);
+  --color-border-strong: var(--border-strong);
   --color-input: var(--input);
+
+  /* Brand */
+  --color-brand: var(--brand);
+  --color-brand-foreground: var(--brand-foreground);
 
   --color-primary: var(--primary);
   --color-primary-foreground: var(--primary-foreground);
+
   --color-secondary: var(--secondary);
   --color-secondary-foreground: var(--secondary-foreground);
+
   --color-accent: var(--accent);
   --color-accent-foreground: var(--accent-foreground);
 
+  /* Semantic */
   --color-destructive: var(--destructive);
   --color-destructive-strong: var(--destructive-strong);
   --color-destructive-foreground: var(--destructive-foreground);
+
   --color-warning: var(--warning);
   --color-warning-strong: var(--warning-strong);
   --color-warning-foreground: var(--warning-foreground);
+
   --color-success: var(--success);
+  --color-success-strong: var(--success-strong);
   --color-success-foreground: var(--success-foreground);
+
   --color-info: var(--info);
   --color-info-strong: var(--info-strong);
   --color-info-foreground: var(--info-foreground);
 
+  --color-mixed: var(--mixed);
+  --color-mixed-foreground: var(--mixed-foreground);
+
+  /* HTTP method identity — Test Editor request rows */
+  --color-method-get: var(--method-get);
+  --color-method-post: var(--method-post);
+  --color-method-put: var(--method-put);
+  --color-method-patch: var(--method-patch);
+  --color-method-delete: var(--method-delete);
+
+  /* Interaction */
   --color-ring: var(--ring);
-  --color-surface-1: var(--surface-1);
 
-  --color-chart-1: var(--chart-1);
-  --color-chart-2: var(--chart-2);
-  --color-chart-3: var(--chart-3);
-  --color-chart-4: var(--chart-4);
-  --color-chart-5: var(--chart-5);
-
-  --radius-sm: calc(var(--radius) - 4px);
-  --radius-md: calc(var(--radius) - 2px);
-  --radius-lg: var(--radius);
+  /* Radius */
+  --radius-sm: calc(var(--radius) - 2px);
+  --radius-md: var(--radius);
+  --radius-lg: calc(var(--radius) + 2px);
   --radius-xl: calc(var(--radius) + 4px);
 
-  --font-sans: var(--font-sans, "IBM Plex Sans", ui-sans-serif, system-ui, sans-serif);
-  --font-mono: var(--font-mono, "IBM Plex Mono", ui-monospace, "SFMono-Regular", monospace);
+  /* Typography */
+  --font-sans:
+    var(
+      --font-sans,
+      "IBM Plex Sans",
+      ui-sans-serif,
+      system-ui,
+      -apple-system,
+      BlinkMacSystemFont,
+      "Segoe UI",
+      sans-serif
+    );
 
-  /* Named type scale — Badge.jsx (text-micro), EmptyState.jsx (text-micro,
-     text-heading-md, text-body-sm), and Card.jsx were already written
-     against these class names; they just didn't exist yet. Sits alongside
-     Tailwind's default text-xs/sm/base scale rather than replacing it —
-     these three are specifically for badge/eyebrow/empty-state copy. */
+  --font-mono:
+    var(
+      --font-mono,
+      "IBM Plex Mono",
+      ui-monospace,
+      "SFMono-Regular",
+      Menlo,
+      Consolas,
+      monospace
+    );
+
+  /* Type scale */
+  --text-xs: 0.75rem;
+  --text-xs--line-height: 1rem;
+
+  --text-sm: 0.875rem;
+  --text-sm--line-height: 1.25rem;
+
+  --text-base: 1rem;
+  --text-base--line-height: 1.5rem;
+
+  --text-lg: 1.125rem;
+  --text-lg--line-height: 1.75rem;
+
+  --text-xl: 1.25rem;
+  --text-xl--line-height: 1.75rem;
+
+  --text-2xl: 1.5rem;
+  --text-2xl--line-height: 2rem;
+
+  --text-3xl: 1.875rem;
+  --text-3xl--line-height: 2.25rem;
+
+
   --text-micro: 0.6875rem;
   --text-micro--line-height: 1rem;
+
   --text-body-sm: 0.875rem;
-  --text-body-sm--line-height: 1.5rem;
+  --text-body-sm--line-height: 1.25rem;
+
+  --text-body-md: 1rem;
+  --text-body-md--line-height: 1.5rem;
+
+  --text-heading-sm: 1.125rem;
+  --text-heading-sm--line-height: 1.75rem;
+
   --text-heading-md: 1.25rem;
   --text-heading-md--line-height: 1.75rem;
+
+  --text-heading-lg: 1.5rem;
+  --text-heading-lg--line-height: 2rem;
 }
 
-/* Named motion utilities — used by Card.jsx's "interactive" variant
-   (duration-normal ease-standard) via Tailwind v4's @utility directive,
-   the CSS-native way to add one-off utility classes without a JS config. */
+@utility duration-fast {
+  transition-duration: var(--duration-fast);
+}
+
 @utility duration-normal {
   transition-duration: var(--duration-normal);
+}
+
+@utility duration-slow {
+  transition-duration: var(--duration-slow);
 }
 
 @utility ease-standard {
   transition-timing-function: var(--ease-standard);
 }
 
-/* ----------------------------------------------------------------------------
-   4. Base layer
-   ---------------------------------------------------------------------------- */
+
 @layer base {
-  * {
-    border-color: var(--border);
+  *,
+  *::before,
+  *::after {
+    box-sizing: border-box;
+    border-color: var(--color-border);
   }
 
   html {
@@ -243,74 +340,132 @@
   }
 
   body {
-    background-color: var(--color-background);
+    margin: 0;
+    background: var(--color-background);
     color: var(--color-foreground);
+
     font-family: var(--font-sans);
-    font-size: 16px;
+    font-size: 1rem;
     line-height: 1.5;
+
     -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
     text-rendering: optimizeLegibility;
   }
 
-  /* Technical/tabular fields — endpoints, status codes, timestamps,
-     response times — get the mono face with tabular numerals so columns
-     of numbers actually align in dense rows. */
+  button,
+  input,
+  textarea,
+  select {
+    font: inherit;
+  }
+
+  button {
+    cursor: pointer;
+  }
+
+  button:disabled,
+  input:disabled,
+  textarea:disabled,
+  select:disabled {
+    cursor: not-allowed;
+  }
+
+  img,
+  svg {
+    display: block;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    margin: 0;
+    color: var(--color-foreground);
+    font-weight: 500;
+  }
+
+  h1 {
+    font-size: 1.5rem;
+    line-height: 2rem;
+    letter-spacing: -0.025em;
+  }
+
+  h2 {
+    font-size: 1.25rem;
+    line-height: 1.75rem;
+    letter-spacing: -0.02em;
+  }
+
+  h3 {
+    font-size: 1.125rem;
+    line-height: 1.75rem;
+    letter-spacing: -0.015em;
+  }
+
+  h4 {
+    font-size: 1rem;
+    line-height: 1.5rem;
+  }
+
+  p {
+    margin: 0;
+  }
+
+  a {
+    color: inherit;
+  }
+
   .font-data {
     font-family: var(--font-mono);
     font-variant-numeric: tabular-nums;
   }
 
-  h1, h2, h3, h4 {
-    font-weight: 600;
-    letter-spacing: -0.01em;
-    line-height: 1.2;
-  }
-
-  h1 { font-size: clamp(1.5rem, 1.1rem + 1.2vw, 2rem); }
-  h2 { font-size: clamp(1.25rem, 1rem + 0.7vw, 1.5rem); }
-  h3 { font-size: 1.125rem; }
-
-  /* Accessible focus ring: lime alone is ~1.3:1 against white and fails the
-     3:1 non-text contrast requirement. Layering a dark inner edge under the
-     brand ring keeps it on-brand but actually visible on light surfaces. */
   :focus-visible {
-    outline: none;
-    box-shadow:
-      0 0 0 2px var(--color-background),
-      0 0 0 4px var(--color-ring),
-      0 0 0 5px color-mix(in srgb, var(--color-secondary) 45%, transparent);
-    border-radius: var(--radius-sm);
+    outline: 2px solid var(--color-ring);
+    outline-offset: 2px;
   }
 
   ::selection {
-    background-color: var(--color-primary);
-    color: var(--color-primary-foreground);
+    background: color-mix(
+      in srgb,
+      var(--color-brand) 22%,
+      transparent
+    );
   }
 
-  /* Thin scrollbars — this is a dense, data-heavy dashboard; default OS
-     scrollbars are visually loud against the token system. */
   * {
     scrollbar-width: thin;
-    scrollbar-color: var(--color-border) transparent;
+    scrollbar-color:
+      var(--color-border)
+      transparent;
   }
+
   *::-webkit-scrollbar {
     width: 10px;
     height: 10px;
   }
+
   *::-webkit-scrollbar-track {
     background: transparent;
   }
+
   *::-webkit-scrollbar-thumb {
-    background-color: var(--color-border);
-    border-radius: 999px;
+    background: var(--color-border);
     border: 2px solid var(--color-background);
+    border-radius: 999px;
   }
+
   *::-webkit-scrollbar-thumb:hover {
-    background-color: var(--color-muted-foreground);
+    background: var(--color-border-strong);
   }
 
   @media (prefers-reduced-motion: reduce) {
-    *, *::before, *::after {
+    *,
+    *::before,
+    *::after {
       animation-duration: 0.01ms !important;
       animation-iteration-count: 1 !important;
       transition-duration: 0.01ms !important;
@@ -320,71 +475,71 @@
 }
 
 /* ----------------------------------------------------------------------------
-   5. App shell — mesh, inputs, table chrome (used by layouts/pages only)
+   6. Shared form primitives
    ---------------------------------------------------------------------------- */
-@layer components {
-  .dm-shell-mesh {
-    background-image:
-      radial-gradient(ellipse 90% 60% at 50% -25%, color-mix(in srgb, var(--color-primary) 14%, transparent), transparent 55%),
-      radial-gradient(ellipse 50% 40% at 100% 0%, color-mix(in srgb, var(--color-accent) 10%, transparent), transparent 50%);
-  }
 
+@layer components {
   .dm-input {
-    height: 2.75rem;
     width: 100%;
-    border-radius: var(--radius-lg);
+    min-height: 2.5rem;
+
     border: 1px solid var(--color-input);
-    background-color: var(--color-background);
-    padding-inline: 0.75rem;
+    border-radius: var(--radius-md);
+
+    background: var(--color-background);
+    color: var(--color-foreground);
+
+    padding: 0.5rem 0.75rem;
+
     font-size: 0.875rem;
     line-height: 1.25rem;
-    transition: border-color var(--duration-normal) var(--ease-standard), box-shadow var(--duration-normal) var(--ease-standard);
+
+    transition:
+      border-color var(--duration-fast) var(--ease-standard),
+      box-shadow var(--duration-fast) var(--ease-standard);
+  }
+
+  .dm-input::placeholder {
+    color: var(--color-muted-foreground);
+  }
+
+  .dm-input:hover:not(:disabled) {
+    border-color: var(--color-border-strong);
   }
 
   .dm-input:focus {
     outline: none;
-    border-color: var(--color-primary);
-    box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-primary) 22%, transparent);
+    border-color: var(--color-brand);
+    box-shadow:
+      0 0 0 3px
+      color-mix(
+        in srgb,
+        var(--color-brand) 15%,
+        transparent
+      );
+  }
+
+  .dm-input:disabled {
+    background: var(--color-muted);
+    color: var(--color-muted-foreground);
   }
 
   .dm-select {
     appearance: none;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='none' stroke='%2364748b' stroke-width='2'%3E%3Cpath d='m4 6 4 4 4-4'/%3E%3C/svg%3E");
+    width: 100%;
+
+    min-height: 2.5rem;
+
+    border: 1px solid var(--color-input);
+    border-radius: var(--radius-md);
+
+    background-color: var(--color-background);
+    color: var(--color-foreground);
+
+    padding: 0.5rem 2.25rem 0.5rem 0.75rem;
+
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='none' stroke='%236b6b6b' stroke-width='1.8'%3E%3Cpath d='m4 6 4 4 4-4'/%3E%3C/svg%3E");
     background-repeat: no-repeat;
     background-position: right 0.75rem center;
-    padding-right: 2.25rem;
-  }
-
-  .dm-filter-chip {
-    border-radius: 9999px;
-    padding: 0.375rem 0.875rem;
-    font-family: var(--font-mono);
-    font-size: var(--text-micro);
-    line-height: var(--text-micro--line-height);
-    text-transform: capitalize;
-    transition: background-color var(--duration-normal) var(--ease-standard), color var(--duration-normal) var(--ease-standard), box-shadow var(--duration-normal) var(--ease-standard);
-  }
-
-  .dm-filter-chip[aria-pressed="true"] {
-    background-color: color-mix(in srgb, var(--color-primary) 16%, transparent);
-    color: var(--color-foreground);
-    box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--color-primary) 35%, transparent);
-  }
-
-  .dm-filter-chip[aria-pressed="false"] {
-    color: var(--color-muted-foreground);
-  }
-
-  .dm-filter-chip[aria-pressed="false"]:hover {
-    background-color: var(--color-muted);
-    color: var(--color-foreground);
-  }
-
-  .dm-stat-tile {
-    border-radius: var(--radius-xl);
-    border: 1px solid var(--color-border);
-    background: linear-gradient(180deg, var(--color-card) 0%, color-mix(in srgb, var(--color-surface-1) 65%, var(--color-card)) 100%);
-    padding: 1rem 1.25rem;
-    box-shadow: 0 1px 2px color-mix(in srgb, var(--color-foreground) 4%, transparent);
   }
 }

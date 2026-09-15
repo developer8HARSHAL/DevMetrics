@@ -1,14 +1,11 @@
-const ERROR_BURST_WINDOW_MS = 10_000;   
+const ERROR_BURST_WINDOW_MS = 10_000;
 const ERROR_BURST_MIN_COUNT = 3;
-
-const DUPLICATE_WINDOW_MS = 10_000;     
+const DUPLICATE_WINDOW_MS = 10_000;   
 const DUPLICATE_MIN_COUNT = 5;
-
-const RETRY_GAP_MS = 5_000;         
-
+const RETRY_GAP_MS = 5_000;   
 const LATENCY_STDDEV_MULTIPLIER = 2;
-const LATENCY_MIN_SAMPLES = 5;       
-const LATENCY_MIN_MS = 200;            
+const LATENCY_MIN_SAMPLES = 5;   
+const LATENCY_MIN_MS = 200;       
 
 function toMillis(ts) {
   return new Date(ts).getTime();

@@ -1,46 +1,29 @@
 import axios from "axios";
-
 import api from "./api";
-import { getApiKey } from "./auth";
-
-// -----------------------------------------------------------------------------
-// Run API
-// -----------------------------------------------------------------------------
-
-function authHeaders() {
-  const apiKey = getApiKey();
-  return apiKey ? { "x-api-key": apiKey } : {};
-}
 
 export const createRun = ({ name, hostname } = {}) =>
-  api.post(
-    "/sessions",
-    { name, hostname },
-    { headers: authHeaders() }
-  );
+  api.post("/sessions", {
+    name,
+    hostname,
+  });
 
 export const endRun = (id) =>
-  api.patch(`/sessions/${encodeURIComponent(id)}/end`, {}, {
-    headers: authHeaders(),
-  });
+  api.patch(`/sessions/${encodeURIComponent(id)}/end`, {});
 
 export const fetchRuns = () =>
-  api.get("/sessions", {
-    headers: authHeaders(),
-  });
+  api.get("/sessions");
 
 export const fetchRun = (id) =>
-  api.get(`/sessions/${encodeURIComponent(id)}`, {
-    headers: authHeaders(),
-  });
+  api.get(`/sessions/${encodeURIComponent(id)}`);
 
 export const compareRuns = (aId, bId) =>
   api.get("/sessions/compare", {
-    params: { a: aId, b: bId },
-    headers: authHeaders(),
+    params: {
+      a: aId,
+      b: bId,
+    },
   });
 
-// Shared reports are public and must not receive x-api-key.
 export const fetchSharedRun = (token) => {
   const baseURL = (
     import.meta.env.VITE_BACKEND_URL || "http://localhost:5000"
@@ -48,55 +31,56 @@ export const fetchSharedRun = (token) => {
 
   return axios.get(
     `${baseURL}/sessions/shared/${encodeURIComponent(token)}`,
-    { timeout: 60000 }
+    {
+      timeout: 60000,
+    }
   );
 };
 
-// -----------------------------------------------------------------------------
-// Run presentation helpers
-// -----------------------------------------------------------------------------
+export const RUNS_GRID_COLS =
+  "grid-cols-[minmax(220px,1fr)_72px_64px_96px_96px_88px_20px]";
 
-export function formatRelativeTime(isoString) {
-  if (!isoString) return "—";
+export const SEVERITY_VARIANT = {
+  critical: "destructive",
+  warning: "warning",
+  info: "info",
+};
 
-  const diffMs = Date.now() - new Date(isoString).getTime();
-  const diffSec = Math.floor(diffMs / 1000);
+export function getRunStatus(run) {
+  if (!run) return "unknown";
 
-  if (diffSec < 60) return "just now";
-
-  const diffMin = Math.floor(diffSec / 60);
-  if (diffMin < 60) return `${diffMin}m ago`;
-
-  const diffHr = Math.floor(diffMin / 60);
-  if (diffHr < 24) return `${diffHr}h ago`;
-
-  const diffDay = Math.floor(diffHr / 24);
-  if (diffDay === 1) return "yesterday";
-  if (diffDay < 7) return `${diffDay}d ago`;
-
-  return new Date(isoString).toLocaleDateString(undefined, {
-    month: "short",
-    day: "numeric",
-  });
+  return (
+    run.run_status ||
+    (run.ended_at ? "completed" : "running")
+  );
 }
 
-export function formatDuration(ms) {
-  if (ms == null) return null;
+export function isRunActive(run) {
+  return ["queued", "running", "analyzing"].includes(
+    getRunStatus(run)
+  );
+}
 
-  const seconds = ms / 1000;
+export function getRunStatusVariant(statusOrRun) {
+  const status =
+    typeof statusOrRun === "string"
+      ? statusOrRun
+      : getRunStatus(statusOrRun);
 
-  if (seconds < 60) {
-    return `${seconds.toFixed(1)}s`;
-  }
+  if (status === "completed") return "outline";
+  if (status === "failed") return "destructive";
+  if (status === "cancelled") return "outline";
+  if (status === "running") return "primary";
+  if (status === "queued") return "warning";
+  if (status === "analyzing") return "warning";
 
-  const minutes = Math.floor(seconds / 60);
-  return `${minutes}m ${Math.round(seconds % 60)}s`;
+  return "warning";
 }
 
 export function sortRuns(runs, sort = "newest") {
   return [...runs].sort((a, b) => {
-    const aActive = a.ended_at == null;
-    const bActive = b.ended_at == null;
+    const aActive = isRunActive(a);
+    const bActive = isRunActive(b);
 
     if (aActive !== bActive) {
       return aActive ? -1 : 1;
@@ -105,6 +89,8 @@ export function sortRuns(runs, sort = "newest") {
     const aTime = new Date(a.started_at).getTime();
     const bTime = new Date(b.started_at).getTime();
 
-    return sort === "newest" ? bTime - aTime : aTime - bTime;
+    return sort === "newest"
+      ? bTime - aTime
+      : aTime - bTime;
   });
 }

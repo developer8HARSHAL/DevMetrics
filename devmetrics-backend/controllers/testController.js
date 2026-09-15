@@ -11,13 +11,17 @@ const VALID_METHODS = new Set([
   "HEAD",
 ]);
 
-function validateTestInput({ name }) {
+function validateTestInput({ name, projectId }) {
   if (typeof name !== "string" || !name.trim()) {
     return "name is required";
   }
 
   if (name.trim().length > 255) {
     return "name must be 255 characters or fewer";
+  }
+
+  if (typeof projectId !== "string" || !projectId.trim()) {
+    return "projectId is required";
   }
 
   return null;
@@ -82,8 +86,8 @@ function validateRequestInput({
 
 export const createTest = async (req, res) => {
   try {
-    const { name, description } = req.body;
-    const error = validateTestInput({ name });
+    const { name, description, projectId } = req.body;
+    const error = validateTestInput({ name, projectId });
 
     if (error) {
       return res.status(400).json({
@@ -92,12 +96,13 @@ export const createTest = async (req, res) => {
       });
     }
 
-    const test = await Test.create({
-      apiKey: req.apiKeyDoc.key,
-      name: name.trim(),
-      description:
-        typeof description === "string" ? description.trim() : "",
-    });
+const test = await Test.create({
+  apiKey: req.apiKeyDoc.key,
+  name: name.trim(),
+  description:
+    typeof description === "string" ? description.trim() : "",
+  projectId,
+});
 
     return res.status(201).json({
       success: true,
@@ -170,8 +175,7 @@ export const getTest = async (req, res) => {
 
 export const updateTest = async (req, res) => {
   try {
-    const { name, description } = req.body;
-
+    const { name, description, projectId } = req.body;
     if (
       name !== undefined &&
       (typeof name !== "string" || !name.trim())

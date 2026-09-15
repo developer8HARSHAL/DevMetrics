@@ -1,9 +1,9 @@
 import { query } from "../config/db.js";
 
-class Test {
+class Project {
   static async create({ apiKey, name, description = "" }) {
     const sql = `
-      INSERT INTO tests (
+      INSERT INTO projects (
         api_key,
         name,
         description
@@ -25,7 +25,7 @@ class Test {
     const result = await query(
       `
         SELECT *
-        FROM tests
+        FROM projects
         WHERE id = $1
       `,
       [id]
@@ -38,7 +38,7 @@ class Test {
     const result = await query(
       `
         SELECT *
-        FROM tests
+        FROM projects
         WHERE id = $1
           AND api_key = $2
       `,
@@ -52,23 +52,23 @@ class Test {
     const result = await query(
       `
         SELECT
-          t.id,
-          t.name,
-          t.description,
-          t.created_at,
-          t.updated_at,
-          COUNT(tr.id)::INTEGER AS request_count
-        FROM tests t
-        LEFT JOIN test_requests tr
-          ON tr.test_id = t.id
-        WHERE t.api_key = $1
+          p.id,
+          p.name,
+          p.description,
+          p.created_at,
+          p.updated_at,
+          COUNT(t.id)::INTEGER AS test_count
+        FROM projects p
+        LEFT JOIN tests t
+          ON t.project_id = p.id
+        WHERE p.api_key = $1
         GROUP BY
-          t.id,
-          t.name,
-          t.description,
-          t.created_at,
-          t.updated_at
-        ORDER BY t.updated_at DESC
+          p.id,
+          p.name,
+          p.description,
+          p.created_at,
+          p.updated_at
+        ORDER BY p.updated_at DESC
       `,
       [apiKey]
     );
@@ -102,7 +102,7 @@ class Test {
 
     const result = await query(
       `
-        UPDATE tests
+        UPDATE projects
         SET ${fields.join(", ")}
         WHERE id = $${parameter++}
           AND api_key = $${parameter}
@@ -117,7 +117,7 @@ class Test {
   static async delete(id, apiKey) {
     const result = await query(
       `
-        DELETE FROM tests
+        DELETE FROM projects
         WHERE id = $1
           AND api_key = $2
         RETURNING id
@@ -128,36 +128,8 @@ class Test {
     return result.rows[0] || null;
   }
 
-  static async findAllByProject(projectId, apiKey) {
-  const result = await query(
-    `
-      SELECT
-        t.id,
-        t.name,
-        t.description,
-        t.project_id,
-        t.created_at,
-        t.updated_at,
-        COUNT(tr.id)::INTEGER AS request_count
-      FROM tests t
-      LEFT JOIN test_requests tr
-        ON tr.test_id = t.id
-      WHERE t.project_id = $1
-        AND t.api_key = $2
-      GROUP BY
-        t.id,
-        t.name,
-        t.description,
-        t.project_id,
-        t.created_at,
-        t.updated_at
-      ORDER BY t.updated_at DESC
-    `,
-    [projectId, apiKey]
-  );
 
-  return result.rows;
-}
+  
 }
 
-export default Test;
+export default Project;
