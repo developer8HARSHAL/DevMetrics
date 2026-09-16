@@ -10,13 +10,15 @@ A self-hosted API testing and regression-analysis platform. Define reusable HTTP
 - **Run comparison** — diff two runs to see what changed.
 - **Public sharing** — share a completed run via a read-only link, no account required to view.
 - **Multi-tenant** — each account gets an isolated, auto-provisioned API key.
+- **Project Insights** — error-rate and latency trend across a project's run history, plus flaky-endpoint detection: endpoints that pass in some runs and fail in others, across every test in the project. Backend analysis in FastAPI + pandas, charts rendered with D3. See [Insights service](#insights-service--insights-service).
 
-**Repo layout:** monorepo — `devmetrics-dashboard` (frontend), `devmetrics-backend` (API + run engine), root-level integration tests.
+**Repo layout:** monorepo — `devmetrics-dashboard` (frontend), `devmetrics-backend` (API + run engine), `insights-service` (analysis engine behind Project Insights), root-level integration tests.
 
 ```
 DevMetrics/
 ├── devmetrics-dashboard/   React + Vite frontend
 ├── devmetrics-backend/     Node/Express API + test-run engine
+├── insights-service/        FastAPI + pandas + D3 — Project Insights analysis
 ├── package.json             root-level Jest/Playwright integration tests
 └── vercel.json               frontend deploy config
 ```
@@ -28,20 +30,23 @@ DevMetrics/
 ```
 ┌────────────────────────┐
 │  devmetrics-dashboard  │  React 19 + Vite, Supabase auth
+│  (D3 renders Insights) │
 └───────────┬────────────┘
             │ HTTPS (x-api-key)
-            ▼
-┌────────────────────────┐
-│   devmetrics-backend   │  Express, custom HTTP test-run engine
-└───────────┬────────────┘
-            │ pg (raw SQL, no ORM)
-            ▼
-┌────────────────────────┐
-│  PostgreSQL (Supabase) │
-└────────────────────────┘
+            ├─────────────────────────────┐
+            ▼                             ▼
+┌────────────────────────┐   ┌────────────────────────┐
+│   devmetrics-backend   │   │    insights-service    │
+│  Express, run engine   │◀──│  FastAPI + pandas       │
+└───────────┬────────────┘   └────────────────────────┘
+            │ pg (raw SQL, no ORM)   ▲
+            ▼                        │ x-api-key, forwarded
+┌────────────────────────┐           │ per-request from the
+│  PostgreSQL (Supabase) │           │ browser's own session
+└────────────────────────┘           (no service-level credential)
 ```
 
-The backend owns test execution, run lifecycle, finding analysis, and run comparison. The dashboard is a thin client over that API — it never talks to Postgres or executes requests itself.
+The backend owns test execution, run lifecycle, finding analysis, and run comparison. The dashboard is a thin client over that API — it never talks to Postgres or executes requests itself. `insights-service` is a read-only consumer of the same backend API: it has no database access of its own, and no stored credential — every request carries the requesting user's own `x-api-key`, forwarded straight from the browser, so `insights-service` only ever sees what that user is already allowed to see.
 
 ## Core workflow
 
@@ -57,23 +62,23 @@ Run it → backend executes each request server-side → queued → running → 
         ▼
 Run Detail: per-request results + severity-graded findings
         │
-   ┌────┴─────┐
-   ▼          ▼
-Compare      Share (public token link)
-(two runs)
+   ┌────┴──────┬─────────────┐
+   ▼            ▼             ▼
+Compare      Share          Project Insights
+(two runs)   (public link)  (trend + flaky endpoints)
 ```
 
 ---
 
 ## Frontend — `devmetrics-dashboard`
 
-**Stack:** React 19, Vite, React Router v7, Tailwind CSS v4, Supabase JS, Axios, Recharts, lucide-react. No TypeScript.
+**Stack:** React 19, Vite, React Router v7, Tailwind CSS v4, Supabase JS, Axios, Recharts, D3, lucide-react. No TypeScript.
 
 ```
 src/
-  pages/        route screens (Tests, TestDetails, Home, Sessiondetails, Compare, Api-key, Shared, auth/)
+  pages/        route screens (Tests, TestDetails, Home, Sessiondetails, Compare, Api-key, Shared, ProjectSettings, ProjectInsightsPage, auth/)
   layouts/       AuthLayout — shell, bootstraps the per-user API key on first load
-  components/    Sidebar, Navbar, RunRow, TestRow, MetricCard, ChartCard, ...
+  components/    Sidebar, Navbar, RunRow, TestRow, MetricCard, ChartCard, ProjectInsights, ...
   components/ui/ Button, Badge, Card, Form, EmptyState, ErrorState, Pagination, Skeleton
   lib/           api.js, auth.js, projects.js, tests.js, runs.js, apiKeys.js, utils.js
   hooks/         useFetch, useTestEditor, useRunDetails
@@ -90,6 +95,8 @@ src/
 | `/sessions/:id` | Yes | Yes |
 | `/compare` | Yes | Yes |
 | `/api-key` | Yes | Yes |
+| `/projects/:id` | Yes | Yes |
+| `/projects/:id/insights` | Yes | Yes |
 | `/shared/:token` | No | No |
 
 ### Setup
@@ -104,6 +111,7 @@ npm install
 VITE_BACKEND_URL=http://localhost:5000
 VITE_SUPABASE_URL=your-supabase-project-url
 VITE_SUPABASE_ANON_KEY=your-supabase-anon-key
+VITE_INSIGHTS_URL=http://localhost:8000
 ```
 
 ```bash
@@ -195,6 +203,60 @@ npm run dev
 
 ---
 
+## Insights service — `insights-service`
+
+A separate Python service that powers **Project Insights**: analysis the Node backend deliberately doesn't compute itself, surfaced on its own page at `/projects/:id/insights`.
+
+**Stack:** FastAPI, pandas, httpx (async). Charts are rendered client-side with D3, in the dashboard.
+
+**What it computes, and why it's a separate service:** the Node backend exposes runs and requests per-Test; nothing aggregates across a whole Project. `insights-service` calls the existing `devmetrics-backend` API to compute two things Node doesn't:
+
+- **Trend** — error rate and average latency over time, across every Test in a project.
+- **Flaky endpoints** — endpoints that pass in some runs and fail in others across the project's Tests, distinct from the `error` finding type (which flags consistent per-run failures, not cross-run inconsistency).
+
+It has no database access and no stored credential of its own. Every request to it carries the requesting user's own `x-api-key`, forwarded by the dashboard from the browser's session — `insights-service` only ever sees what that user's key already grants access to on the backend.
+
+```
+insights-service/
+├── main.py           config, backend client, pandas aggregation, all routes — single file by design
+├── requirements.txt
+└── .env.example
+```
+
+### API endpoints
+
+| Method | Path | Auth |
+|---|---|---|
+| `GET` | `/api/insights/project/{project_id}/trend?days=30` | `x-api-key` header, forwarded per-request |
+| `GET` | `/api/insights/project/{project_id}/flakiness?limit=100` | `x-api-key` header, forwarded per-request |
+| `GET` | `/health` | — |
+
+### Setup
+
+```bash
+cd insights-service
+python -m venv .venv
+source .venv/bin/activate        # Windows: .venv\Scripts\activate
+pip install -r requirements.txt
+cp .env.example .env
+```
+
+`.env`:
+```
+DEVMETRICS_API_BASE_URL=http://localhost:5000
+DASHBOARD_ORIGINS=http://localhost:5173,http://localhost:3000   # CORS allowlist
+```
+
+No API key goes here — auth is per-request, forwarded from whoever is calling it.
+
+```bash
+uvicorn main:app --reload --port 8000
+```
+
+`devmetrics-backend` must already be running — this service is a client of it, not a replacement for it.
+
+---
+
 ## Database — PostgreSQL (Supabase-hosted)
 
 No ORM — every model is a thin class over parameterized `pg` queries.
@@ -213,6 +275,7 @@ Notes:
 - `sessions.run_status` is constrained to `queued / running / analyzing / completed / failed / cancelled`.
 - Every run gets a public share token by default, enabling the read-only share link.
 - Foreign keys cascade on delete (`tests → test_requests`, `sessions → run_findings`).
+- `insights-service` reads from this data only through the backend's API, using the caller's own key — it never connects to Postgres directly and never holds a credential of its own.
 
 ---
 
@@ -225,6 +288,8 @@ cd DevMetrics
 cd devmetrics-backend && npm install && npm run setup && npm run seed && npm run dev
 # in a second terminal
 cd devmetrics-dashboard && npm install && npm run dev
+# in a third terminal — powers Project Insights
+cd insights-service && python -m venv .venv && source .venv/bin/activate && pip install -r requirements.txt && uvicorn main:app --reload --port 8000
 ```
 
 ## Roadmap
