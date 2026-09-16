@@ -36,7 +36,7 @@ DevMetrics/
             ▼                      ▼
 ┌────────────────────────┐  ┌────────────────────────┐
 │   devmetrics-backend   │  │    insights-service    │
-│  Express, run engine   │◀─│   FastAPI + pandas     │
+│  Express, run engine   │◀│    FastAPI + pandas    │
 └───────────┬────────────┘  └────────────────────────┘
             │ pg (raw SQL, no ORM)
             ▼
